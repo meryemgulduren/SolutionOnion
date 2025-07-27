@@ -1,4 +1,4 @@
-﻿using MediatR;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using SO.Application.Features.Commands.ProposalModule.Proposal.CreateProposal;
@@ -6,6 +6,8 @@ using SO.Application.Features.Commands.ProposalModule.Proposal.UpdateProposalSum
 using SO.Application.Features.Queries.AccountModule.Account.GetAllAccount;
 using SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal;
 using SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal; // YENİ
+using SO.Application.Interfaces.Services;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,10 +16,12 @@ namespace SO.Web.Controllers
     public class ProposalsController : Controller
     {
         private readonly IMediator _mediator;
+        private readonly IDocumentExportService _documentExportService;
 
-        public ProposalsController(IMediator mediator)
+        public ProposalsController(IMediator mediator, IDocumentExportService documentExportService)
         {
             _mediator = mediator;
+            _documentExportService = documentExportService;
         }
 
         public async Task<IActionResult> Index()
@@ -164,11 +168,43 @@ namespace SO.Web.Controllers
             var accounts = accountsResponse.Result as System.Collections.Generic.List<SO.Application.DTOs.AccountModule.Account.ListAccount>;
             ViewBag.Accounts = new SelectList(accounts, "Id", "CompanyName");
 
-            // Yeni bir teklif DTO’su döndürülüyor
+            // Yeni bir teklif DTO'su döndürülüyor
             var model = new CreateProposalCommandRequest();
             return View("CreateSummary", model); // Eğer View ismi CreateSummary.cshtml ise
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ExportToWord(string id)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(id))
+                {
+                    return BadRequest("Proposal ID is required");
+                }
+
+                if (!Guid.TryParse(id, out Guid proposalId))
+                {
+                    return BadRequest("Invalid Proposal ID format");
+                }
+
+                var wordDocument = await _documentExportService.ExportProposalToWordAsync(proposalId);
+                
+                var proposalData = await _documentExportService.GetProposalExportDataAsync(proposalId);
+                var fileName = $"Proje_Teklifi_{proposalData.Title?.Replace(" ", "_")}_{DateTime.Now:yyyyMMdd_HHmmss}.docx";
+
+                return File(wordDocument, "application/vnd.openxmlformats-officedocument.wordprocessingml.document", fileName);
+            }
+            catch (ArgumentException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, "An error occurred while generating the document");
+            }
+        }
 
     }
 }
