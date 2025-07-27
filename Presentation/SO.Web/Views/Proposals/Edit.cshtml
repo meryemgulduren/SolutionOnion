@@ -1,0 +1,92 @@
+﻿@using SO.Application.DTOs.ProposalModule.Proposal
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+
+@{
+    ViewData["Title"] = "Teklif Detayları";
+    var proposal = Model.Result as SingleProposal;
+}
+
+<div class="container-fluid">
+    <h1>Teklif Düzenle: <span class="text-primary">@proposal.ProposalName</span></h1>
+    <p>
+        <strong>Müşteri:</strong> @proposal.CompanyName |
+        <strong>Durum:</strong> <span class="badge bg-info text-dark">@proposal.Status</span>
+    </p>
+
+    <hr />
+
+    <div class="row">
+        @* Sol Taraftaki Adım Menüsü *@
+        <div class="col-md-3">
+            <div class="list-group" id="proposal-steps">
+                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ProjectSummary" class="list-group-item list-group-item-action active" data-step="_ProjectSummary">
+                    Create Project Summary
+                </a>
+                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_InitiatorSponsor" class="list-group-item list-group-item-action" data-step="_InitiatorSponsor">
+                    Identify Project Initiator and/or Sponsor
+                </a>
+                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_CustomersAndDeliverables" class="list-group-item list-group-item-action" data-step="_CustomersAndDeliverables">
+                    Identify Customers and Final Deliverables
+                </a>
+                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ProjectApproach" class="list-group-item list-group-item-action" data-step="_ProjectApproach">
+                    Define Project Approach
+                </a>
+                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ResourceRequirements" class="list-group-item list-group-item-action" data-step="_ResourceRequirements">
+                    Identify Resource Requirements
+                </a>
+                @* Diğer adımlar da bu şekilde eklenecek *@
+            </div>
+        </div>
+
+        @* Sağ Tarafta Adımların Formlarının Gösterileceği Alan *@
+        <div class="col-md-9">
+            <div id="step-content-container">
+                @* AJAX ile yüklenecek içerik buraya gelecek *@
+                <div class="text-center">
+                    <div class="spinner-border" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Sayfa ilk yüklendiğinde, ilk adımı otomatik olarak yükle
+            loadStepContent($('#proposal-steps a.active'));
+
+            // Menüdeki bir adıma tıklandığında
+            $('#proposal-steps a').on('click', function (e) {
+                e.preventDefault(); // Linkin normal davranışını engelle
+
+                var clickedLink = $(this);
+
+                // Diğerlerinden 'active' class'ını kaldır, tıklanana ekle
+                $('#proposal-steps a').removeClass('active');
+                clickedLink.addClass('active');
+
+                loadStepContent(clickedLink);
+            });
+
+            function loadStepContent(linkElement) {
+                var url = linkElement.attr('href'); // Linkin href'inden URL'yi al
+                var container = $('#step-content-container');
+
+                // Yükleniyor animasyonunu göster
+                container.html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
+
+                // AJAX ile ilgili adımı yükle
+                $.get(url, function (data) {
+                    container.html(data);
+                }).fail(function() {
+                    container.html('<div class="alert alert-danger">İçerik yüklenirken bir hata oluştu.</div>');
+                });
+            }
+        });
+    </script>
+}
+

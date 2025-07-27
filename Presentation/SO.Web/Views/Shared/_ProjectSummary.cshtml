@@ -1,0 +1,89 @@
+﻿@using SO.Application.DTOs.ProposalModule.Proposal
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+
+@{
+    var proposal = Model.Result as SingleProposal;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Create Project Summary</h5>
+    </div>
+    <div class="card-body">
+        <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post">
+
+            <div class="form-group mb-3">
+                <label asp-for="@proposal.ProjectDescription" class="form-label fw-bold">Project Description</label>
+                <textarea name="ProjectDescription" class="form-control" rows="5">@proposal.ProjectDescription</textarea>
+            </div>
+
+            <div class="form-group mb-3">
+                <label asp-for="@proposal.StatementOfNeed" class="form-label fw-bold">Statement of Need or Opportunity</label>
+                <textarea name="StatementOfNeed" class="form-control" rows="5">@proposal.StatementOfNeed</textarea>
+            </div>
+
+            <hr />
+
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="card-subtitle text-muted">Business Objective(s)</h6>
+                <button type="button" id="addObjectiveBtn" class="btn btn-sm btn-success">Yeni Hedef Ekle</button>
+            </div>
+
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 45%;">Objective</th>
+                        <th style="width: 45%;">Alignment</th>
+                        <th style="width: 10%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="objectivesContainer">
+                    @if (proposal.BusinessObjectives != null && proposal.BusinessObjectives.Any())
+                    {
+                        for (int i = 0; i < proposal.BusinessObjectives.Count; i++)
+                        {
+                            <tr class="objective-row">
+                                <td><input name="BusinessObjectives[@i].Objective" class="form-control" value="@proposal.BusinessObjectives[i].Objective" /></td>
+                                <td><input name="BusinessObjectives[@i].Alignment" class="form-control" value="@proposal.BusinessObjectives[i].Alignment" /></td>
+                                <td><button type="button" class="btn btn-danger btn-sm removeObjectiveBtn">Sil</button></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Kaydet ve Devam Et</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        let objectiveIndex = $('#objectivesContainer .objective-row').length;
+
+        $("#addObjectiveBtn").click(function () {
+            var newRow = `
+                <tr class="objective-row">
+                    <td><input name="BusinessObjectives[${objectiveIndex}].Objective" class="form-control" /></td>
+                    <td><input name="BusinessObjectives[${objectiveIndex}].Alignment" class="form-control" /></td>
+                    <td><button type="button" class="btn btn-danger btn-sm removeObjectiveBtn">Sil</button></td>
+                </tr>`;
+            $("#objectivesContainer").append(newRow);
+            objectiveIndex++;
+        });
+
+        $(document).on('click', '.removeObjectiveBtn', function () {
+            $(this).closest('tr').remove();
+            $('#objectivesContainer .objective-row').each(function(index, tr) {
+                $(tr).find('input').each(function() {
+                    var oldName = $(this).attr('name');
+                    var newName = oldName.replace(/\[\d+\]/, '[' + index + ']');
+                    $(this).attr('name', newName);
+                });
+            });
+            objectiveIndex = $('#objectivesContainer .objective-row').length;
+        });
+    });
+</script>

@@ -1,0 +1,42 @@
+﻿@model SO.Application.Features.Commands.ProposalModule.Proposal.CreateProposal.CreateProposalCommandRequest
+
+@{
+    ViewData["Title"] = "Yeni Teklif Başlat";
+}
+
+<h1>Yeni Teklif Başlat</h1>
+<p>Lütfen teklifi oluşturmak istediğiniz müşteriyi seçin ve teklife bir isim verin.</p>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            @* DÜZELTME: Olası tüm hataları bir özet olarak en üstte gösterir. *@
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group mb-3">
+                <label asp-for="AccountId" class="control-label">Müşteri</label>
+                <select asp-for="AccountId" class="form-control" asp-items="ViewBag.Accounts">
+                    <option value="">-- Müşteri Seçiniz --</option>
+                </select>
+                <span asp-validation-for="AccountId" class="text-danger"></span>
+            </div>
+            <div class="form-group mb-3">
+                <label asp-for="ProposalName" class="control-label">Teklif Adı</label>
+                <input asp-for="ProposalName" class="form-control" />
+                <span asp-validation-for="ProposalName" class="text-danger"></span>
+            </div>
+
+            @* YENİ EKLENEN ALAN *@
+            <div class="form-group mb-3">
+                <label asp-for="PreparedBy" class="control-label">Hazırlayan</label>
+                <input asp-for="PreparedBy" class="form-control" />
+                <span asp-validation-for="PreparedBy" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Teklifi Başlat ve Devam Et" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+

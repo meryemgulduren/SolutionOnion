@@ -1,0 +1,81 @@
+﻿@using SO.Application.DTOs.ProposalModule.Proposal
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+
+@{
+    var proposal = Model.Result as SingleProposal;
+}
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Identify Resource Requirements</h5>
+    </div>
+    <div class="card-body">
+        <<form asp-action="UpdateResourceRequirements" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="Id" value="@proposal.Id" />
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="card-subtitle text-muted">Resource Requirements</h6>
+                <button type="button" id="addRequirementBtn" class="btn btn-sm btn-success">Yeni Kaynak Ekle</button>
+            </div>
+
+            <table class="table table-bordered">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 30%;">Resource</th>
+                        <th style="width: 60%;">Description</th>
+                        <th style="width: 10%;"></th>
+                    </tr>
+                </thead>
+                <tbody id="requirementsContainer">
+                    @if (proposal.ResourceRequirements != null && proposal.ResourceRequirements.Any())
+                    {
+                        for (int i = 0; i < proposal.ResourceRequirements.Count; i++)
+                        {
+                            <tr class="requirement-row">
+                                <td><input name="ResourceRequirements[@i].Resource" class="form-control" value="@proposal.ResourceRequirements[i].Resource" /></td>
+                                <td><textarea name="ResourceRequirements[@i].Description" class="form-control" rows="2">@proposal.ResourceRequirements[i].Description</textarea></td>
+                                <td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Sil</button></td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+
+            <div class="d-flex justify-content-end mt-3">
+                <button type="submit" class="btn btn-primary">Kaydet ve Devam Et</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        setupDynamicRows('#addRequirementBtn', '#requirementsContainer', 'requirement-row',
+            `<td><input name="ResourceRequirements[{index}].Resource" class="form-control" /></td>
+             <td><textarea name="ResourceRequirements[{index}].Description" class="form-control" rows="2"></textarea></td>`);
+
+        function setupDynamicRows(addButtonId, containerId, rowClass, cellsHtml) {
+            let index = $(`${containerId} .${rowClass}`).length;
+
+            $(addButtonId).click(function () {
+                var newRow = `<tr class="${rowClass}">${cellsHtml.replace(/{index}/g, index)}<td><button type="button" class="btn btn-danger btn-sm remove-row-btn">Sil</button></td></tr>`;
+                $(containerId).append(newRow);
+                index++;
+            });
+
+            $(document).on('click', `${containerId} .remove-row-btn`, function () {
+                $(this).closest('tr').remove();
+                $(`${containerId} .${rowClass}`).each(function(i, tr) {
+                    $(tr).find('input, textarea').each(function() {
+                        var oldName = $(this).attr('name');
+                        if (oldName) {
+                            var newName = oldName.replace(/\[\d+\]/, '[' + i + ']');
+                            $(this).attr('name', newName);
+                        }
+                    });
+                });
+                index = $(`${containerId} .${rowClass}`).length;
+            });
+        }
+    });
+</script>

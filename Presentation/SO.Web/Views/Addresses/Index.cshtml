@@ -1,0 +1,58 @@
+﻿@* 1. Adım: Gerekli using ve model tanımları *@
+@using SO.Application.DTOs.AccountModule.Address
+@model SO.Application.Features.Queries.AccountModule.Address.GetAllAddress.GetAllAddressQueryResponse
+
+@{
+    ViewData["Title"] = "Adres Listesi";
+
+    // 2. Adım: EKSİK OLAN SATIR BURASIYDI!
+    // Model.Result'ı alıp, "addressList" adında bir listeye dönüştürüyoruz.
+    var addressList = Model.Result as List<ListAddress>;
+}
+
+<h1>Adres Listesi</h1>
+
+<p>
+    <a asp-action="Create">Yeni Adres Ekle</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                Adres Satırı
+            </th>
+            <th>
+                Şehir
+            </th>
+            <th>
+                Ülke
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @* 3. Adım: Artık "addressList" bilindiği için bu kod hatasız çalışacaktır. *@
+        @if (addressList != null)
+        {
+            @foreach (var item in addressList)
+            {
+                <tr>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.AddressLine1)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.City)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Country)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a> |
+                        <a asp-action="Details" asp-route-id="@item.Id">Detay</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id">Sil</a>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

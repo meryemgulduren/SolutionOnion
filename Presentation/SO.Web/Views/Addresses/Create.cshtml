@@ -1,0 +1,94 @@
+﻿@* Model olarak CreateAddressCommandRequest sınıfını kullanıyoruz *@
+@model SO.Application.Features.Commands.AccountModule.Address.CreateAddress.CreateAddressCommandRequest
+
+@{
+    ViewData["Title"] = "Yeni Adres Ekle";
+}
+
+<h1>Yeni Adres Ekle</h1>
+<h4>Adres Bilgileri</h4>
+<hr />
+<div class="row">
+    <div class="col-md-6">
+        <form asp-action="Create" method="post">
+            @* Olası tüm validasyon hatalarını en üstte bir liste olarak gösterir *@
+            <div asp-validation-summary="All" class="text-danger"></div>
+
+            <div class="form-group mb-2">
+                <label asp-for="AccountId" class="control-label">Müşteri ID</label>
+                <input asp-for="AccountId" class="form-control" />
+                <span asp-validation-for="AccountId" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="AddressName" class="control-label">Adres Adı (Örn: Merkez Ofis)</label>
+                <input asp-for="AddressName" class="form-control" />
+                <span asp-validation-for="AddressName" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="AddressType" class="control-label">Adres Tipi (Örn: Fatura)</label>
+                <input asp-for="AddressType" class="form-control" />
+                <span asp-validation-for="AddressType" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="AddressLine1" class="control-label">Adres Satırı 1</label>
+                <input asp-for="AddressLine1" class="form-control" />
+                <span asp-validation-for="AddressLine1" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="AddressLine2" class="control-label">Adres Satırı 2</label>
+                <input asp-for="AddressLine2" class="form-control" />
+                <span asp-validation-for="AddressLine2" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="City" class="control-label">Şehir</label>
+                <input asp-for="City" class="form-control" />
+                <span asp-validation-for="City" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="State" class="control-label">İlçe / Eyalet</label>
+                <input asp-for="State" class="form-control" />
+                <span asp-validation-for="State" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Country" class="control-label">Ülke</label>
+                <input asp-for="Country" class="form-control" />
+                <span asp-validation-for="Country" class="text-danger"></span>
+            </div>
+
+            <div class="form-group mb-2">
+                <label asp-for="Phone" class="control-label">Telefon</label>
+                <input asp-for="Phone" class="form-control" />
+                <span asp-validation-for="Phone" class="text-danger"></span>
+            </div>
+
+            <div class="form-group form-check my-3">
+                <label class="form-check-label">
+                    <input class="form-check-input" asp-for="isDefault" /> Varsayılan Adres Mi?
+                </label>
+            </div>
+
+            <div class="form-group form-check mb-3">
+                <label class="form-check-label">
+                    @* Not: Request sınıfında 'Active' string olarak tanımlanmış olsa da,
+                       mantıksal olarak bool olması gerektiği için checkbox kullandık.
+                       Eğer hata alırsan, CreateAddressCommandRequest sınıfındaki
+                       'public string Active' satırını 'public bool Active' olarak değiştirmelisin.
+                    *@
+                    <input class="form-check-input" asp-for="Active" /> Aktif Mi?
+                </label>
+            </div>
+
+            <div class="form-group mt-4">
+                <input type="submit" value="Kaydet" class="btn btn-primary" />
+                <a asp-action="Index" class="btn btn-secondary">Listeye Geri Dön</a>
+            </div>
+        </form>
+    </div>
+</div>

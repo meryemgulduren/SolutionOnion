@@ -1,0 +1,52 @@
+﻿@{
+    ViewData["Title"] = "Ana Sayfa";
+}
+
+<div class="container mt-5">
+    <div class="text-center">
+        <h1 class="display-4">Proje Teklif Sistemine Hoş Geldiniz</h1>
+        <p class="lead">Tekliflerinizi kolayca oluşturun, yönetin ve çıktı alın.</p>
+    </div>
+
+    <div class="row mt-5 fade-in">
+        <div class="col-md-4">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Yeni Teklif Oluştur</h5>
+                    <p class="card-text">Yeni bir proje teklifi başlatın.</p>
+                    <a href="/Proposals/CreateSummary" class="btn btn-primary">Başla</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Teklif Listesi</h5>
+                    <p class="card-text">Tüm tekliflerinizi görüntüleyin.</p>
+                    <a href="/Proposals" class="btn btn-success">Listele</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Müşteri Listesi</h5>
+                    <p class="card-text">Kayıtlı müşterileri yönetin.</p>
+                    <a href="/Customers" class="btn btn-info">Müşteriler</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Fade-in efekti
+        document.addEventListener("DOMContentLoaded", function () {
+            const el = document.querySelector('.fade-in');
+            el.style.opacity = 0;
+            el.style.transition = "opacity 1s";
+            setTimeout(() => el.style.opacity = 1, 200);
+        });
+    </script>
+}

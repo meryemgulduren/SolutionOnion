@@ -1,0 +1,50 @@
+﻿@using SO.Application.DTOs.ProposalModule.Proposal
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal.GetAllProposalQueryResponse
+
+@{
+    ViewData["Title"] = "Teklif Listesi";
+    var proposalList = Model.Result as List<ListProposal>;
+}
+
+<h1>Teklif Listesi</h1>
+
+<p>
+    @* İleride "Yeni Teklif Ekle" sayfası için kullanılacak link *@
+    <a asp-action="Create">Yeni Teklif Ekle</a>
+</p>
+<table class="table table-hover">
+    <thead class="table-light">
+        <tr>
+            <th>Teklif Adı</th>
+            <th>Müşteri</th>
+            <th>Tarih</th>
+            <th>Tutar</th>
+            <th>Durum</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @if (proposalList != null && proposalList.Any())
+        {
+            @foreach (var item in proposalList)
+            {
+                <tr>
+                    <td>@item.ProposalName</td>
+                    <td>@item.CompanyName</td>
+                    <td>@item.ProposalDate.ToShortDateString()</td>
+                    <td>@item.TotalAmount.ToString("C")</td>
+                    <td>@item.Status</td>
+                    <td>
+                        <a asp-action="Details" asp-route-id="@item.Id">Detaylar</a>
+                    </td>
+                </tr>
+            }
+        }
+        else
+        {
+            <tr>
+                <td colspan="6" class="text-center">Kayıtlı teklif bulunamadı.</td>
+            </tr>
+        }
+    </tbody>
+</table>
