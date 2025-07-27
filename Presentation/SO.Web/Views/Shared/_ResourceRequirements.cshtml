@@ -1,4 +1,4 @@
-﻿@using SO.Application.DTOs.ProposalModule.Proposal
+@using SO.Application.DTOs.ProposalModule.Proposal
 @model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
 
 @{
@@ -41,8 +41,15 @@
                 </tbody>
             </table>
 
-            <div class="d-flex justify-content-end mt-3">
-                <button type="submit" class="btn btn-primary">Kaydet ve Devam Et</button>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div>
+                    <a href="@Url.Action("ExportToWord", "Proposals", new { id = proposal.Id })" class="btn btn-success">
+                        <i class="fas fa-file-word"></i> Word Olarak İndir
+                    </a>
+                </div>
+                <div>
+                    <button type="submit" class="btn btn-primary">Kaydet ve Devam Et</button>
+                </div>
             </div>
         </form>
     </div>

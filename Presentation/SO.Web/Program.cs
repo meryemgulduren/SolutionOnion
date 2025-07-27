@@ -1,5 +1,7 @@
 using MediatR;
 using SO.Application.Abstractions.Services.AccountModule;
+using SO.Application.Interfaces.Services;
+using SO.Infrastructure.Services;
 using SO.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,6 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddMediatR(typeof(IAddressService).Assembly);
+builder.Services.AddScoped<IDocumentExportService, DocumentExportService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
