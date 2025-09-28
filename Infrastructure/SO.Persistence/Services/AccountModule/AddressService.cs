@@ -1,9 +1,11 @@
 ﻿using SO.Application.Abstractions.Services.AccountModule;
 using SO.Application.DTOs.AccountModule.Address;
-using SO.Application.Repositories.AccountModule;
+using SO.Application.Repositories;
 using SO.Domain.Entities.AccountModule;
 using SO.Domain.Entities.Common;
+using SO.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Server.IISIntegration;
+using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -15,21 +17,24 @@ namespace SO.Persistence.Services.AccountModule
 {
     public class AddressService : IAddressService
     {
-        readonly IAddressReadRepository _addressReadRepository;
-        readonly IAddressWriteRepository _addressWriteRepository;
+        readonly IReadRepository<Address> _addressReadRepository;
+        readonly IWriteRepository<Address> _addressWriteRepository;
+        private readonly UserManager<AppUser> _userManager;
 
-        public AddressService(IAddressReadRepository addressReadRepository,
-                              IAddressWriteRepository addressWriteRepository)
+        public AddressService(IReadRepository<Address> addressReadRepository,
+                              IWriteRepository<Address> addressWriteRepository,
+                              UserManager<AppUser> userManager)
         {
             _addressReadRepository = addressReadRepository;
             _addressWriteRepository = addressWriteRepository;
+            _userManager = userManager;
         }
 
         public async Task CreateAddressAsync(CreateAddress createAddress)
         {
             await _addressWriteRepository.AddAsync(new()
             {
-                AccountId = Guid.Parse(createAddress.AccountId),
+                AccountId = createAddress.AccountId,
                 isDefault = createAddress.isDefault,
                 AddressType = createAddress.AddressType,
                 AddressName = createAddress.AddressName,
@@ -52,8 +57,8 @@ namespace SO.Persistence.Services.AccountModule
 
         public async Task UpdateAddressAsync(UpdateAddress updateAddress)
         {
-            Address address = await _addressReadRepository.GetByIdAsync(updateAddress.Id);
-            address.AccountId = Guid.Parse(updateAddress.AccountId);
+            Address address = await _addressReadRepository.GetByIdAsync(updateAddress.Id.ToString());
+            address.AccountId = updateAddress.AccountId;
             address.isDefault = updateAddress.isDefault;
             address.AddressType = updateAddress.AddressType;
             address.AddressName = updateAddress.AddressName;
@@ -81,6 +86,12 @@ namespace SO.Persistence.Services.AccountModule
         public async Task<SingleAddress> GetAddressByIdAsync(string id)
         {
             var address = await _addressReadRepository.GetByIdAsync(id);
+            
+            if (address == null)
+            {
+                throw new ArgumentException($"Address with ID {id} not found.");
+            }
+            
             return new()
             {
                 Id = address.Id.ToString(),
@@ -99,13 +110,58 @@ namespace SO.Persistence.Services.AccountModule
                 Phone = address.Phone,
                 Fax = address.Fax,
                 Mail = address.Mail,
-                Active = address.Active
+                Active = address.Active,
+                CreatedDate = address.CreatedDate
             };
         }
 
-        public async Task<List<Address>> GetAllAddressesAsync()
+        public async Task<List<ListAddress>> GetAllAddressesAsync()
         {
-            return _addressReadRepository.GetAll(false).ToList();
+            var addresses = _addressReadRepository.GetAll(false).ToList();
+            System.Diagnostics.Debug.WriteLine($"AddressService: Found {addresses.Count} addresses in database");
+            
+            var result = new List<ListAddress>();
+            
+            foreach (var address in addresses)
+            {
+                var createdBy = "Unknown";
+                if (!string.IsNullOrEmpty(address.CreatedById))
+                {
+                    var user = await _userManager.FindByIdAsync(address.CreatedById);
+                    if (user != null)
+                    {
+                        createdBy = user.UserName ?? user.Email ?? "Unknown";
+                    }
+                }
+                
+                result.Add(new ListAddress
+                {
+                    Id = address.Id.ToString(),
+                    AccountId = address.AccountId.ToString(),
+                    AddressName = address.AddressName,
+                    AddressType = address.AddressType,
+                    AddressLine1 = address.AddressLine1,
+                    AddressLine2 = address.AddressLine2,
+                    AddressLine = $"{address.AddressLine1} {address.AddressLine2}".Trim(), // Birleştirilmiş adres
+                    City = address.City,
+                    State = address.State,
+                    Country = address.Country,
+                    Zip = address.Zip,
+                    PostalCode = address.Zip, // JavaScript için alias
+                    Phone = address.Phone,
+                    Fax = address.Fax, // ✅ FAX ALANI EKLENDİ
+                    Mail = address.Mail, // ✅ MAIL ALANI EKLENDİ
+                    isDefault = address.isDefault,
+                    Active = address.Active,
+                    CreatedById = address.CreatedById,
+                    CreatedBy = createdBy,
+                    CreatedDate = address.CreatedDate,
+                    CompanyName = "Unknown Company" // TODO: Account ile ilişkilendir
+                });
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"AddressService: Returning {result.Count} addresses");
+            return result;
         }
     }
 }

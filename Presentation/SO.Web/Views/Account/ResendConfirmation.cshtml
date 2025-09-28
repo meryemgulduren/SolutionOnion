@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Doğrulama E-postasını Yeniden Gönder";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">Doğrulama E-postasını Yeniden Gönder</div>
+                <div class="card-body">
+                    @if (ViewBag.Info != null)
+                    {
+                        <div class="alert alert-info">@ViewBag.Info</div>
+                    }
+                    <form asp-action="ResendConfirmation" method="post">
+                        <div class="mb-3">
+                            <label class="form-label">E-posta</label>
+                            <input type="email" name="email" class="form-control" required />
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Gönder</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

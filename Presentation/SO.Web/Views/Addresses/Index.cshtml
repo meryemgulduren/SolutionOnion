@@ -1,58 +1,651 @@
-﻿@* 1. Adım: Gerekli using ve model tanımları *@
-@using SO.Application.DTOs.AccountModule.Address
+﻿@using SO.Application.DTOs.AccountModule.Address
 @model SO.Application.Features.Queries.AccountModule.Address.GetAllAddress.GetAllAddressQueryResponse
 
 @{
-    ViewData["Title"] = "Adres Listesi";
-
-    // 2. Adım: EKSİK OLAN SATIR BURASIYDI!
-    // Model.Result'ı alıp, "addressList" adında bir listeye dönüştürüyoruz.
-    var addressList = Model.Result as List<ListAddress>;
+    ViewData["Title"] = "Adres Yönetimi";
 }
 
-<h1>Adres Listesi</h1>
-
-<p>
-    <a asp-action="Create">Yeni Adres Ekle</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                Adres Satırı
-            </th>
-            <th>
-                Şehir
-            </th>
-            <th>
-                Ülke
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @* 3. Adım: Artık "addressList" bilindiği için bu kod hatasız çalışacaktır. *@
-        @if (addressList != null)
-        {
-            @foreach (var item in addressList)
-            {
-                <tr>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.AddressLine1)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.City)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Country)
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.Id">Düzenle</a> |
-                        <a asp-action="Details" asp-route-id="@item.Id">Detay</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Id">Sil</a>
-                    </td>
-                </tr>
-            }
+@section Styles {
+    <style>
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
         }
-    </tbody>
-</table>
+        
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        }
+        
+        .bg-gradient-info {
+            background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        }
+        
+        .form-control, .form-select {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.9rem;
+            border-radius: 0.375rem;
+            border: 1px solid #ced4da;
+            transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+        }
+        
+        .form-control:focus, .form-select:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.1rem rgba(0, 123, 255, 0.15);
+        }
+        
+        .modal-lg {
+            max-width: 800px;
+        }
+        
+        .form-text {
+            font-size: 0.8rem;
+            color: #6c757d;
+            margin-top: 0.25rem;
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.9rem;
+            border-radius: 0.375rem;
+        }
+        
+        .shadow-sm {
+            box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075) !important;
+        }
+        
+        .border-0 {
+            border: 0 !important;
+        }
+        
+        .modal-header {
+            border-bottom: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid #dee2e6;
+            padding: 1rem 1.5rem;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-map-marker-alt me-3 text-primary"></i>
+                    Adres Yönetimi
+                </h1>
+                <p class="page-subtitle lead mb-0">
+                    Müşteri adreslerini, konumları ve iletişim bilgilerini yönetin
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createAddressModal">
+                    <i class="fas fa-plus me-2"></i>Yeni Adres Ekle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="searchInput" class="form-label">
+                    <i class="fas fa-search me-2"></i>Adres Ara
+                </label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="Adres adı, şehir veya müşteri ile ara...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="clientFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Müşteri Filtresi
+                </label>
+                <select class="form-select" id="clientFilter">
+                    <option value="">Tüm Müşteriler</option>
+                    @if (ViewBag.Accounts != null)
+                    {
+                        foreach (var account in ViewBag.Accounts)
+                        {
+                            <option value="@account.Id">@account.CompanyName</option>
+                        }
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Durum Filtresi
+                </label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="true">Aktif</option>
+                    <option value="false">Pasif</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" id="clearFilters">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Addresses Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-table me-2 text-primary"></i>
+                Adres Listesi
+            </h3>
+            <div class="header-actions">
+                <button class="btn btn-outline-secondary btn-sm me-2" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i>Yenile
+                </button>
+                <button class="btn btn-outline-success btn-sm" id="exportAddressesBtn">
+                    <i class="fas fa-download me-1"></i>Dışa Aktar
+                </button>
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="addressesTable" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-map-marker-alt me-2"></i>Adres Adı
+                            </th>
+                            <th>
+                                <i class="fas fa-building me-2"></i>Müşteri
+                            </th>
+                            <th>
+                                <i class="fas fa-tag me-2"></i>Adres Tipi
+                            </th>
+                            <th>
+                                <i class="fas fa-map me-2"></i>Adres Satırı 1
+                            </th>
+                            <th>
+                                <i class="fas fa-city me-2"></i>Şehir
+                            </th>
+                            <th>
+                                <i class="fas fa-flag me-2"></i>Ülke
+                            </th>
+                            <th>
+                                <i class="fas fa-info-circle me-2"></i>Durum
+                            </th>
+                            <th class="text-center">
+                                <i class="fas fa-cogs me-2"></i>İşlemler
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="showingCount">0</span> / <span id="totalCount">0</span> adres gösteriliyor
+                    </small>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="btn-group btn-group-sm" role="group">
+                        <button type="button" class="btn btn-outline-primary" id="prevPage">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-primary" id="nextPage">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fas fa-map-marker-alt"></i>
+        <h3>Adres Bulunamadı</h3>
+        <p>İlk adresinizi ekleyerek başlayın</p>
+        <button class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#createAddressModal">
+            <i class="fas fa-plus me-2"></i>İlk Adresi Ekle
+        </button>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Create Address Modal -->
+<div class="modal fade" id="createAddressModal" tabindex="-1" aria-labelledby="createAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-semibold text-dark" id="createAddressModalLabel">
+                    <i class="fas fa-plus me-2 text-primary"></i>
+                    Yeni Adres Ekle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <form id="createAddressForm">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="AccountId" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-building me-2 text-primary"></i>Müşteri <span class="text-danger">*</span>
+                                </label>
+                                <select class="form-select" id="AccountId" name="AccountId" required>
+                                    <option value="">Müşteri Seçiniz</option>
+                                    @if (ViewBag.Accounts != null)
+                                    {
+                                        foreach (var account in ViewBag.Accounts)
+                                        {
+                                            <option value="@account.Id">@account.CompanyName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="AddressName" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-map-marker-alt me-2 text-success"></i>Adres Adı
+                                </label>
+                                <input type="text" class="form-control" id="AddressName" name="AddressName" 
+                                       placeholder="Örn: Ana Ofis, Fatura Adresi, Depo">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="AddressType" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-tag me-2 text-info"></i>Adres Tipi
+                                </label>
+                                <select class="form-select" id="AddressType" name="AddressType">
+                                    <option value="">Tip Seçiniz</option>
+                                    <option value="Billing">Fatura Adresi</option>
+                                    <option value="Shipping">Teslimat Adresi</option>
+                                    <option value="Office">Ofis</option>
+                                    <option value="Warehouse">Depo</option>
+                                    <option value="Other">Diğer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="Phone" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-phone me-2 text-warning"></i>Telefon
+                                </label>
+                                <input type="tel" class="form-control" id="Phone" name="Phone" 
+                                       placeholder="Telefon numarası giriniz">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="Fax" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-fax me-2 text-secondary"></i>Faks
+                                </label>
+                                <input type="text" class="form-control" id="Fax" name="Fax" 
+                                       placeholder="Faks numarası giriniz">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="AddressLine1" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-map me-2 text-primary"></i>Adres Satırı 1 <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="AddressLine1" name="AddressLine1" 
+                                       placeholder="Sokak adı, bina numarası, mahalle vb." required>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="AddressLine2" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-map me-2 text-secondary"></i>Adres Satırı 2
+                                </label>
+                                <input type="text" class="form-control" id="AddressLine2" name="AddressLine2" 
+                                       placeholder="Daire, kat, blok vb. (isteğe bağlı)">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="City" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-city me-2 text-primary"></i>Şehir <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="City" name="City" 
+                                       placeholder="Şehir adını giriniz" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="State" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-map me-2 text-success"></i>İl/İlçe
+                                </label>
+                                <input type="text" class="form-control" id="State" name="State" 
+                                       placeholder="İl veya ilçe adını giriniz">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="Country" class="form-label fw-bold text-dark">
+                                    <i class="fas fa-flag me-2 text-warning"></i>Ülke <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="Country" name="Country" 
+                                       placeholder="Ülke adını giriniz" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isDefault" name="isDefault">
+                                <label class="form-check-label fw-semibold" for="isDefault">
+                                    <i class="fas fa-star me-2 text-warning"></i>Varsayılan Adres
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="Active" name="Active" checked>
+                                <label class="form-check-label fw-semibold" for="Active">
+                                    <i class="fas fa-check-circle me-2 text-success"></i>Aktif Adres
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Adres Oluştur
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Address Modal -->
+<div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-semibold text-dark" id="editAddressModalLabel">
+                    <i class="fas fa-edit me-2 text-warning"></i>
+                    Adres Düzenle
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <form id="editAddressForm">
+                <div class="modal-body">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="EditId" name="Id">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="EditAccountId" class="form-label fw-bold">
+                                    <i class="fas fa-building me-2 text-primary"></i>Client *
+                                </label>
+                                <select class="form-select" id="EditAccountId" name="AccountId" required>
+                                    <option value="">Select Client</option>
+                                    @if (ViewBag.Accounts != null)
+                                    {
+                                        foreach (var account in ViewBag.Accounts)
+                                        {
+                                            <option value="@account.Id">@account.CompanyName</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="EditAddressName" class="form-label fw-bold">
+                                    <i class="fas fa-map-marker-alt me-2 text-success"></i>Address Name
+                                </label>
+                                <input type="text" class="form-control" id="EditAddressName" name="AddressName">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="EditAddressType" class="form-label fw-bold">
+                                    <i class="fas fa-tag me-2 text-info"></i>Address Type
+                                </label>
+                                <select class="form-select" id="EditAddressType" name="AddressType">
+                                    <option value="">Select Type</option>
+                                    <option value="Billing">Billing</option>
+                                    <option value="Shipping">Shipping</option>
+                                    <option value="Office">Office</option>
+                                    <option value="Warehouse">Warehouse</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="EditPhone" class="form-label fw-bold">
+                                    <i class="fas fa-phone me-2 text-warning"></i>Phone
+                                </label>
+                                <input type="tel" class="form-control" id="EditPhone" name="Phone">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="EditFax" class="form-label fw-bold">
+                                    <i class="fas fa-fax me-2 text-secondary"></i>Fax
+                                </label>
+                                <input type="text" class="form-control" id="EditFax" name="Fax">
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="EditAddressLine1" class="form-label fw-bold">
+                                    <i class="fas fa-map me-2 text-secondary"></i>Address Line 1 *
+                                </label>
+                                <input type="text" class="form-control" id="EditAddressLine1" name="AddressLine1" required>
+                            </div>
+                        </div>
+                        <div class="col-12">
+                            <div class="form-group">
+                                <label for="EditAddressLine2" class="form-label fw-bold">
+                                    <i class="fas fa-map me-2 text-secondary"></i>Address Line 2
+                                </label>
+                                <input type="text" class="form-control" id="EditAddressLine2" name="AddressLine2">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="EditCity" class="form-label fw-bold">
+                                    <i class="fas fa-city me-2 text-primary"></i>City *
+                                </label>
+                                <input type="text" class="form-control" id="EditCity" name="City" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="EditState" class="form-label fw-bold">
+                                    <i class="fas fa-map me-2 text-success"></i>State/Province
+                                </label>
+                                <input type="text" class="form-control" id="EditState" name="State">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label for="EditCountry" class="form-label fw-bold">
+                                    <i class="fas fa-flag me-2 text-warning"></i>Country *
+                                </label>
+                                <input type="text" class="form-control" id="EditCountry" name="Country" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="EditIsDefault" name="isDefault">
+                                <label class="form-check-label fw-bold" for="EditIsDefault">
+                                    <i class="fas fa-star me-2 text-warning"></i>Default Address
+                                </label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="EditActive" name="Active">
+                                <label class="form-check-label fw-bold" for="EditActive">
+                                    <i class="fas fa-check-circle me-2 text-success"></i>Active Address
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>İptal
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save me-2"></i>Adresi Güncelle
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Address Details Modal -->
+<div class="modal fade" id="addressDetailsModal" tabindex="-1" aria-labelledby="addressDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-semibold text-dark" id="addressDetailsModalLabel">
+                    <i class="fas fa-info-circle me-2 text-info"></i>
+                    Adres Detayları
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4 fw-semibold text-muted">Adres Adı:</dt>
+                            <dd class="col-sm-8" id="DetailsAddressName"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Müşteri:</dt>
+                            <dd class="col-sm-8" id="DetailsClientName"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Adres Tipi:</dt>
+                            <dd class="col-sm-8" id="DetailsAddressType"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Adres Satırı 1:</dt>
+                            <dd class="col-sm-8" id="DetailsAddressLine1"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Adres Satırı 2:</dt>
+                            <dd class="col-sm-8" id="DetailsAddressLine2"></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4 fw-semibold text-muted">Şehir:</dt>
+                            <dd class="col-sm-8" id="DetailsCity"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">İl/İlçe:</dt>
+                            <dd class="col-sm-8" id="DetailsState"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Ülke:</dt>
+                            <dd class="col-sm-8" id="DetailsCountry"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Telefon:</dt>
+                            <dd class="col-sm-8" id="DetailsPhone"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Faks:</dt>
+                            <dd class="col-sm-8" id="DetailsFax"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Varsayılan:</dt>
+                            <dd class="col-sm-8" id="DetailsIsDefault"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Durum:</dt>
+                            <dd class="col-sm-8" id="DetailsActive"></dd>
+                            
+                            <dt class="col-sm-4 fw-semibold text-muted">Oluşturma Tarihi:</dt>
+                            <dd class="col-sm-8" id="DetailsCreatedDate"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Kapat
+                </button>
+                <button type="button" class="btn btn-primary" id="editFromDetails">
+                    <i class="fas fa-edit me-2"></i>Adresi Düzenle
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content shadow-sm border-0">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-semibold text-dark" id="deleteConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2 text-danger"></i>
+                    Silme Onayı
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="fas fa-exclamation-circle text-danger mb-3" style="font-size: 2rem;"></i>
+                    <h6 class="fw-semibold text-dark">Bu adresi silmek istediğinizden emin misiniz?</h6>
+                    <p class="text-muted mb-0">
+                        Bu işlem geri alınamaz ve adres kalıcı olarak silinecektir.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>İptal
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash me-2"></i>Adresi Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/addresses.js"></script>
+}

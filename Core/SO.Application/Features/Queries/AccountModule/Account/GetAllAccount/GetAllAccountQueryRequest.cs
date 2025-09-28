@@ -11,6 +11,7 @@ namespace SO.Application.Features.Queries.AccountModule.Account.GetAllAccount
 {
     public class GetAllAccountQueryRequest : IRequest<GetAllAccountQueryResponse>
     {
-        // Tüm müşterileri listeleyeceğimiz için bu isteğin şimdilik bir parametreye ihtiyacı yok.
+        public string? CurrentUserId { get; set; }
+        public bool IsAdmin { get; set; } = false;
     }
 }

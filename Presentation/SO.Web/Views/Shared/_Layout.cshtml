@@ -1,58 +1,218 @@
 ﻿<!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Proje Teklif Sistemi</title>
-    @* Bootstrap CSS ve siteye özel CSS dosyalarını yüklüyoruz *@
+    <title>@ViewData["Title"] - Project Proposal System</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Dancing+Script:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+    
+    <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/SO.Web.styles.css" asp-append-version="true" />
+    
+    <!-- Page Specific Styles -->
+    @await RenderSectionAsync("Styles", required: false)
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
+    <!-- Header -->
+    <header class="sticky-top">
+        <nav class="navbar navbar-expand-lg navbar-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Proje Teklif Sistemi</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
+                <!-- Brand -->
+                <a class="navbar-brand d-flex align-items-center" asp-area="" asp-controller="Home" asp-action="Index">
+                    <div class="brand-icon" style="margin: -15px 0;">
+                        <img src="~/images/_1645542588 (1).png" alt="Logo" width="100" height="100" style="object-fit: contain;" />
+                    </div>
+                </a>
+
+                <!-- Mobile Toggle -->
+                <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" 
+                        aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
                     <span class="navbar-toggler-icon"></span>
                 </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Ana Sayfa</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Accounts" asp-action="Index">Müşteriler</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Proposals" asp-action="Index">Teklifler</a>
-                        </li>
+
+                <!-- Navigation Menu -->
+                <div class="navbar-collapse collapse d-lg-inline-flex justify-content-between">
+                    <ul class="navbar-nav flex-grow-1 justify-content-center">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Dashboard" ? "active" : "")" 
+                                   asp-area="" asp-controller="Home" asp-action="Dashboard">
+                                    <i class="fas fa-tachometer-alt me-2"></i>
+                                    <span>Panel</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Proposals" ? "active" : "")" 
+                                   asp-area="" asp-controller="Proposals" asp-action="Index">
+                                    <i class="fas fa-file-contract me-2"></i>
+                                    <span>Teklifler</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Accounts" ? "active" : "")" 
+                                   asp-area="" asp-controller="Accounts" asp-action="Index">
+                                    <i class="fas fa-users me-2"></i>
+                                    <span>Müşteriler</span>
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Addresses" ? "active" : "")" 
+                                   asp-area="" asp-controller="Addresses" asp-action="Index">
+                                    <i class="fas fa-map-marker-alt me-2"></i>
+                                    <span>Adresler</span>
+                                </a>
+                            </li>
+                            @if (User.IsInRole("SuperAdmin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle @(ViewContext.RouteData.Values["Controller"]?.ToString() == "SuperAdmin" ? "active" : "")" 
+                                       href="#" id="superAdminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-crown me-2"></i>
+                                        <span>Süper Yönetici Paneli</span>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="superAdminDropdown">
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Panel
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="Proposals">
+                                            <i class="fas fa-file-contract me-2"></i>Tüm Teklifler
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="Accounts">
+                                            <i class="fas fa-users me-2"></i>Tüm Müşteriler
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="Addresses">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Tüm Adresler
+                                        </a></li>
+                                        <li><hr class="dropdown-divider"></li>
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="Users">
+                                            <i class="fas fa-user-cog me-2"></i>Kullanıcı Yönetimi
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="SuperAdmin" asp-action="SystemSettings">
+                                            <i class="fas fa-cogs me-2"></i>Sistem Ayarları
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            }
+                            else if (User.IsInRole("Admin"))
+                            {
+                                <li class="nav-item dropdown">
+                                    <a class="nav-link dropdown-toggle @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Admin" ? "active" : "")" 
+                                       href="#" id="adminDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                        <i class="fas fa-cog me-2"></i>
+                                        <span>Yönetici Paneli</span>
+                                    </a>
+                                    <ul class="dropdown-menu" aria-labelledby="adminDropdown">
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Dashboard">
+                                            <i class="fas fa-tachometer-alt me-2"></i>Panel
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Proposals">
+                                            <i class="fas fa-file-contract me-2"></i>Tüm Teklifler
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Accounts">
+                                            <i class="fas fa-users me-2"></i>Tüm Müşteriler
+                                        </a></li>
+                                        <li><a class="dropdown-item" asp-controller="Admin" asp-action="Addresses">
+                                            <i class="fas fa-map-marker-alt me-2"></i>Tüm Adresler
+                                        </a></li>
+                                    </ul>
+                                </li>
+                            }
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link @(ViewContext.RouteData.Values["Controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["Action"]?.ToString() == "Index" ? "active" : "")" 
+                                   asp-area="" asp-controller="Home" asp-action="Index">
+                                    <i class="fas fa-home me-2"></i>
+                                    <span>Ana Sayfa</span>
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                    
+                    <ul class="navbar-nav ms-auto">
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" role="button" 
+                                   data-bs-toggle="dropdown" aria-expanded="false">
+                                    <div class="user-avatar me-2">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                    <span>@User.Identity.Name</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Profile"><i class="fas fa-user me-2"></i>Profil</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" asp-controller="Account" asp-action="Logout"><i class="fas fa-sign-out-alt me-2"></i>Çıkış Yap</a></li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Giriş Yap
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Account" asp-action="Register">
+                                    <i class="fas fa-user-plus me-2"></i>Kayıt Ol
+                                </a>
+                            </li>
+                        }
                     </ul>
                 </div>
             </div>
         </nav>
     </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @* Her sayfanın kendi içeriği bu satırın olduğu yere gelecek *@
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <!-- Main Content -->
+    <main role="main" class="main-content">
+        @RenderBody()
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer mt-auto py-4">
         <div class="container">
-            &copy; 2025 - Proje Teklif Sistemi
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-0 text-muted">
+                        <i class="fas fa-copyright me-1"></i>
+                        2025 Project Proposal Management System. All rights reserved.
+                    </p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <div class="footer-links">
+                        <a href="#" class="text-muted me-3"><i class="fas fa-shield-alt me-1"></i>Privacy</a>
+                        <a href="#" class="text-muted me-3"><i class="fas fa-file-contract me-1"></i>Terms</a>
+                        <a href="#" class="text-muted"><i class="fas fa-question-circle me-1"></i>Help</a>
+                    </div>
+                </div>
+            </div>
         </div>
     </footer>
 
-    @* Gerekli JavaScript dosyalarını yüklüyoruz *@
+    <!-- Scripts -->
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
 
-    @* Her sayfanın kendine özel JavaScript kodları varsa bu satırın olduğu yere gelecek *@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

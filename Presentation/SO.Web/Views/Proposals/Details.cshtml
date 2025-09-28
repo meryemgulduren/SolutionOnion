@@ -1,0 +1,191 @@
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+
+@{
+    ViewData["Title"] = "Teklif Detayları";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-file-contract text-primary me-2"></i>
+                Teklif Detayları
+            </h1>
+            <p class="mb-0 text-muted">Teklif hakkında detaylı bilgileri görüntüleyin</p>
+        </div>
+        <div>
+            @if (Model.Result != null)
+            {
+                var proposal = Model.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal;
+                if (proposal != null)
+                {
+                    <a href="/Proposals/Edit/@proposal.Id" class="btn btn-primary me-2">
+                        <i class="fas fa-edit me-2"></i>Teklifi Düzenle
+                    </a>
+                    <a href="/Proposals/ExportToWord/@proposal.Id" class="btn btn-success me-2">
+                        <i class="fas fa-file-word me-2"></i>Word Olarak İndir
+                    </a>
+                }
+            }
+            <a href="/SuperAdmin/Proposals" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Listeye Dön
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Result != null)
+    {
+        var proposal = Model.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal;
+        
+        @if (proposal != null)
+        {
+            <!-- Basic Information Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i>Temel Bilgiler
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Teklif Adı:</label>
+                            <p class="form-control-plaintext">@proposal.ProposalName</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Şirket Adı:</label>
+                            <p class="form-control-plaintext">@proposal.CompanyName</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Hazırlayan:</label>
+                            <p class="form-control-plaintext">@proposal.PreparedBy</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Teklif Tarihi:</label>
+                            <p class="form-control-plaintext">@proposal.ProposalDate.ToString("dd MMMM yyyy")</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Durum:</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge badge-@(proposal.Status.ToString() == "Active" ? "success" : proposal.Status.ToString() == "Draft" ? "warning" : proposal.Status.ToString() == "Completed" ? "info" : "danger")">
+                                    @proposal.Status.ToString()
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Toplam Tutar:</label>
+                            <p class="form-control-plaintext">@proposal.TotalAmount.ToString("C") @proposal.Currency</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Project Description Card -->
+        @if (!string.IsNullOrEmpty(proposal.ProjectDescription))
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-file-alt me-2"></i>Proje Açıklaması
+                </h6>
+                </div>
+                <div class="card-body">
+                    <p class="form-control-plaintext">@proposal.ProjectDescription</p>
+                </div>
+            </div>
+        }
+
+        
+        <!-- Additional Information Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-calendar me-2"></i>Ek Bilgiler
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Oluşturulma Tarihi:</label>
+                            <p class="form-control-plaintext">@proposal.CreatedDate.ToString("dd MMMM yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="font-weight-bold">Son Değiştirilme:</label>
+                            <p class="form-control-plaintext">
+                                @if (proposal.UpdatedDate.HasValue)
+                                {
+                                    @proposal.UpdatedDate.Value.ToString("dd MMMM yyyy HH:mm")
+                                }
+                                else
+                                {
+                                    <span class="text-muted">Hiç değiştirilmedi</span>
+                                }
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        }
+    }
+    else
+    {
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h4>Teklif Bulunamadı</h4>
+                <p class="text-muted">İstenen teklif bulunamadı.</p>
+                <a href="/SuperAdmin/Proposals" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Listeye Dön
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .form-control-plaintext {
+            background-color: #f8f9fc;
+            border: 1px solid #e3e6f0;
+            border-radius: 0.35rem;
+            padding: 0.75rem;
+            margin-bottom: 0;
+        }
+        
+        .badge {
+            font-size: 0.875em;
+            padding: 0.5em 0.75em;
+        }
+        
+        .card {
+            border: none;
+            border-radius: 0.35rem;
+        }
+        
+        .card-header {
+            background-color: #f8f9fc;
+            border-bottom: 1px solid #e3e6f0;
+        }
+    </style>
+}

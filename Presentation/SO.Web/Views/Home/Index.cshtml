@@ -1,52 +1,378 @@
-﻿@{
-    ViewData["Title"] = "Ana Sayfa";
+﻿@* Ana Sayfa - Tüm Kullanıcılar İçin *@
+@{
+    ViewData["Title"] = "Teklif Yönetim Sistemine Hoş Geldiniz";
 }
 
-<div class="container mt-5">
-    <div class="text-center">
-        <h1 class="display-4">Proje Teklif Sistemine Hoş Geldiniz</h1>
-        <p class="lead">Tekliflerinizi kolayca oluşturun, yönetin ve çıktı alın.</p>
-    </div>
-
-    <div class="row mt-5 fade-in">
-        <div class="col-md-4">
-            <div class="card border-primary shadow-sm">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Yeni Teklif Oluştur</h5>
-                    <p class="card-text">Yeni bir proje teklifi başlatın.</p>
-                    <a href="/Proposals/CreateSummary" class="btn btn-primary">Başla</a>
+<!-- Hero Section -->
+<div class="hero-section">
+    
+    <div class="container">
+        <div class="row align-items-center min-vh-100 py-5">
+            <!-- Sol taraf - Metin içeriği -->
+            <div class="col-lg-6">
+                <div class="hero-content text-left">
+                    <h1 class="hero-title display-3 mb-4" style="color: white; font-style: normal; font-weight: 700; font-family: 'Inter', 'Segoe UI', sans-serif; letter-spacing: 0.5px; line-height: 1.2;">
+                        Profesyonel Proje Teklifleri Oluşturun
+                    </h1>
+                    <p class="hero-subtitle lead mb-4" style="color: rgba(255, 255, 255, 0.9); font-size: 1.3rem; line-height: 1.6; max-width: 500px;">
+                        Kapsamlı yönetim sistemimizle iş teklif sürecinizi kolaylaştırın. 
+                        Tüm proje tekliflerinizi tek güçlü platformda oluşturun, takip edin ve yönetin.
+                    </p>
+                    <div class="hero-features">
+                        <div class="feature-item mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="color: rgba(255, 255, 255, 0.9);">Kolay ve hızlı teklif oluşturma</span>
+                        </div>
+                        <div class="feature-item mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="color: rgba(255, 255, 255, 0.9);">Profesyonel raporlama ve analiz</span>
+                        </div>
+                        <div class="feature-item mb-3">
+                            <i class="fas fa-check-circle text-success me-2"></i>
+                            <span style="color: rgba(255, 255, 255, 0.9);">Güvenli veri yönetimi</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Teklif Listesi</h5>
-                    <p class="card-text">Tüm tekliflerinizi görüntüleyin.</p>
-                    <a href="/Proposals" class="btn btn-success">Listele</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center">
-                    <h5 class="card-title">Müşteri Listesi</h5>
-                    <p class="card-text">Kayıtlı müşterileri yönetin.</p>
-                    <a href="/Customers" class="btn btn-info">Müşteriler</a>
+            
+            <!-- Sağ taraf - Görsel -->
+            <div class="col-lg-6">
+                <div class="hero-visual-container">
+                    <div class="hero-image-wrapper">
+                        <img src="~/images/Adsız tasarım (2).png" alt="Proje Teklif Yönetim Sistemi" class="hero-main-image">
+                    </div>
                 </div>
             </div>
         </div>
     </div>
 </div>
 
+
+
+@section Styles {
+    <style>
+        /* Ana Bölüm */
+        .hero-section {
+            background: linear-gradient(135deg, #0B1426 0%, #1a2332 30%, #2a3f5f 60%, #0B1426 100%);
+            color: white;
+            position: relative;
+            overflow: hidden;
+            margin-top: 0;
+            padding-top: 0;
+        }
+        
+        /* Navbar ve ana bölüm arasındaki boşluğu kaldır */
+        .hero-section {
+            margin-top: -2rem;
+        }
+        
+        .hero-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(74, 111, 165, 0.1);
+        }
+        
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .hero-title {
+            line-height: 1.2;
+            font-style: normal;
+            font-weight: 700;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            letter-spacing: 0.5px;
+            color: white;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            font-weight: 400;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .hero-features {
+            margin-top: 2rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            font-size: 1.1rem;
+        }
+        
+        .feature-item i {
+            font-size: 1.2rem;
+            margin-right: 0.75rem;
+        }
+        
+        /* Ana Metin Alanı */
+        .hero-textarea textarea {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 2px solid rgba(74, 111, 165, 0.3) !important;
+            color: white !important;
+            font-size: 1.1rem;
+            resize: vertical;
+            min-height: 200px;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        
+        .hero-textarea textarea:focus {
+            background-color: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(74, 111, 165, 0.6) !important;
+            box-shadow: 0 0 0 0.2rem rgba(74, 111, 165, 0.25);
+            outline: none;
+        }
+        
+        .hero-textarea textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        
+        .bg-primary-soft {
+            background-color: rgba(13, 110, 253, 0.1) !important;
+        }
+        
+        /* Ana Görsel */
+        .hero-visual-container {
+            position: relative;
+            height: 800px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        
+        .hero-image-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .hero-main-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        
+        
+        .floating-icons {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .icon-item {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, rgba(74, 111, 165, 0.15), rgba(107, 155, 210, 0.1));
+            border: 2px solid #4a6fa5;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a6fa5;
+            font-size: 1.5rem;
+            opacity: 0.3;
+            box-shadow: 0 4px 15px rgba(74, 111, 165, 0.2);
+        }
+        
+        .icon-1 {
+            top: 10%;
+            left: 15%;
+        }
+        
+        .icon-2 {
+            top: 20%;
+            right: 20%;
+            border-color: #6b9bd2;
+            color: #6b9bd2;
+            background: linear-gradient(135deg, rgba(107, 155, 210, 0.15), rgba(139, 179, 232, 0.1));
+            box-shadow: 0 4px 15px rgba(107, 155, 210, 0.2);
+        }
+        
+        .icon-3 {
+            bottom: 30%;
+            left: 10%;
+            width: 70px;
+            height: 70px;
+            border-color: #8bb3e8;
+            color: #8bb3e8;
+            background: linear-gradient(135deg, rgba(139, 179, 232, 0.15), rgba(74, 111, 165, 0.1));
+            box-shadow: 0 4px 15px rgba(139, 179, 232, 0.2);
+        }
+        
+        .icon-4 {
+            top: 50%;
+            right: 15%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+        }
+        
+        .icon-5 {
+            bottom: 20%;
+            right: 30%;
+            width: 65px;
+            height: 65px;
+            border-color: #6b9bd2;
+            color: #6b9bd2;
+            background: linear-gradient(135deg, rgba(107, 155, 210, 0.15), rgba(139, 179, 232, 0.1));
+            box-shadow: 0 4px 15px rgba(107, 155, 210, 0.2);
+        }
+        
+        .icon-6 {
+            top: 70%;
+            left: 25%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            border-color: #8bb3e8;
+            color: #8bb3e8;
+            background: linear-gradient(135deg, rgba(139, 179, 232, 0.15), rgba(74, 111, 165, 0.1));
+            box-shadow: 0 4px 15px rgba(139, 179, 232, 0.2);
+        }
+        
+        .icon-7 {
+            top: 15%;
+            left: 60%;
+            width: 55px;
+            height: 55px;
+            font-size: 1.3rem;
+        }
+        
+        .icon-8 {
+            bottom: 50%;
+            right: 40%;
+            width: 50px;
+            height: 50px;
+            font-size: 1.2rem;
+            border-color: #6b9bd2;
+            color: #6b9bd2;
+            background: linear-gradient(135deg, rgba(107, 155, 210, 0.15), rgba(139, 179, 232, 0.1));
+            box-shadow: 0 4px 15px rgba(107, 155, 210, 0.2);
+        }
+        
+        .icon-9 {
+            top: 40%;
+            left: 40%;
+            width: 60px;
+            height: 60px;
+            border-color: #8bb3e8;
+            color: #8bb3e8;
+            background: linear-gradient(135deg, rgba(139, 179, 232, 0.15), rgba(74, 111, 165, 0.1));
+            box-shadow: 0 4px 15px rgba(139, 179, 232, 0.2);
+        }
+        
+        .icon-10 {
+            bottom: 10%;
+            left: 70%;
+            width: 40px;
+            height: 40px;
+            font-size: 1.1rem;
+        }
+        
+        
+        
+        /* İstatistik Animasyonu */
+        .stat-number {
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        /* Teklif Önizleme */
+        .proposal-preview {
+            text-align: left;
+        }
+        
+        /* Responsive Tasarım */
+        @@media (max-width: 992px) {
+            .hero-content {
+                text-align: center;
+                margin-bottom: 3rem;
+            }
+            
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1.1rem;
+                max-width: 100%;
+            }
+            
+            .floating-card {
+                display: none;
+            }
+        }
+        
+        @@media (max-width: 768px) {
+            .hero-title {
+                font-size: 2rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 1rem;
+            }
+            
+            .hero-visual-container {
+                height: 500px;
+            }
+            
+            .feature-item {
+                font-size: 1rem;
+            }
+        }
+        
+        @@media (max-width: 576px) {
+            .hero-title {
+                font-size: 1.8rem;
+            }
+            
+            .hero-subtitle {
+                font-size: 0.95rem;
+            }
+            
+            .hero-visual-container {
+                height: 400px;
+            }
+        }
+    </style>
+}
+
 @section Scripts {
     <script>
-        // Fade-in efekti
+        // Sayfa yüklendiğinde animasyonları başlat
         document.addEventListener("DOMContentLoaded", function () {
-            const el = document.querySelector('.fade-in');
-            el.style.opacity = 0;
-            el.style.transition = "opacity 1s";
-            setTimeout(() => el.style.opacity = 1, 200);
+            // Ana içerik animasyonu
+            const heroElements = document.querySelectorAll('.hero-content > *');
+            heroElements.forEach((element, index) => {
+                element.style.opacity = '0';
+                element.style.transform = 'translateY(30px)';
+                element.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+                
+                setTimeout(() => {
+                    element.style.opacity = '1';
+                    element.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
         });
     </script>
 }

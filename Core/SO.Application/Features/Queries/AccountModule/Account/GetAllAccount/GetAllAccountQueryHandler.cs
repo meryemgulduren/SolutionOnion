@@ -7,8 +7,6 @@ using MediatR;
 using SO.Application.Abstractions.Services.AccountModule;
 using System.Threading;
 
-
-
 namespace SO.Application.Features.Queries.AccountModule.Account.GetAllAccount
 {
     public class GetAllAccountQueryHandler : IRequestHandler<GetAllAccountQueryRequest, GetAllAccountQueryResponse>
@@ -22,14 +20,24 @@ namespace SO.Application.Features.Queries.AccountModule.Account.GetAllAccount
 
         public async Task<GetAllAccountQueryResponse> Handle(GetAllAccountQueryRequest request, CancellationToken cancellationToken)
         {
-            // Servis katmanını çağırarak tüm müşterileri getiriyoruz.
-            var accounts = await _accountService.GetAllAccountsAsync();
+            var allAccounts = await _accountService.GetAllAccountsAsync();
 
-            // Dönen sonucu Response nesnesine atayarak geri döndürüyoruz.
-            return new()
+            // Admin ise tüm account'ları göster
+            if (request.IsAdmin)
             {
-                Result = accounts
-            };
+                return new() { Result = allAccounts };
+            }
+
+            // User ise sadece kendi oluşturduğu account'ları göster
+            if (!string.IsNullOrEmpty(request.CurrentUserId))
+            {
+                var filteredAccounts = allAccounts?.Where(a => 
+                    a.CreatedById == request.CurrentUserId).ToList();
+                return new() { Result = filteredAccounts ?? new List<SO.Application.DTOs.AccountModule.Account.ListAccount>() };
+            }
+            
+            // Kullanıcı ID yoksa boş liste döndür
+            return new() { Result = new List<SO.Application.DTOs.AccountModule.Account.ListAccount>() };
         }
     }
 }

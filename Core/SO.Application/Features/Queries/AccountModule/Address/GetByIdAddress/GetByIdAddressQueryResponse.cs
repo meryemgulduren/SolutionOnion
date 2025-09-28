@@ -24,6 +24,7 @@ namespace SO.Application.Features.Queries.AccountModule.Address.GetByIdAddress
         public string? Phone { get; set; }
         public string? Fax { get; set; }
         public string? Mail { get; set; }
-        public string Active { get; set; }
+        public bool Active { get; set; } = true;
+        public DateTime CreatedDate { get; set; }
     }
 }

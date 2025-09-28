@@ -1,0 +1,139 @@
+@model SO.Application.Features.Queries.AccountModule.Account.GetByIdAccount.GetByIdAccountQueryResponse
+@{
+    ViewData["Title"] = "Account Details";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user text-primary me-2"></i>
+                Account Details
+            </h1>
+            <p class="mb-0 text-muted">View detailed information about the client account</p>
+        </div>
+        <div>
+            @if (Model.Result != null)
+            {
+                var account = Model.Result as SO.Application.DTOs.AccountModule.Account.SingleAccount;
+                if (account != null)
+                {
+                    <a href="/Accounts/Edit/@account.Id" class="btn btn-primary">
+                        <i class="fas fa-edit me-2"></i>Edit Account
+                    </a>
+                }
+            }
+            <a href="/SuperAdmin/Accounts" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    @if (Model.Result != null)
+    {
+        var account = Model.Result as SO.Application.DTOs.AccountModule.Account.SingleAccount;
+        @if (account != null)
+        {
+            <!-- Basic Information Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Basic Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Company Name:</label>
+                            <p class="form-control-plaintext">@account.CompanyName</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Contact Person:</label>
+                            <p class="form-control-plaintext">@account.ContactPerson</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Email:</label>
+                            <p class="form-control-plaintext">@account.Email</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Phone Number:</label>
+                            <p class="form-control-plaintext">@account.PhoneNumber</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tax Office:</label>
+                            <p class="form-control-plaintext">@account.TaxOffice</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Tax Number:</label>
+                            <p class="form-control-plaintext">@account.TaxNumber</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Status:</label>
+                            <p class="form-control-plaintext">
+                                <span class="badge bg-@(account.IsActive ? "success" : "secondary")">
+                                    @(account.IsActive ? "Active" : "Inactive")
+                                </span>
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Created Date:</label>
+                            <p class="form-control-plaintext">@account.CreatedDate.ToString("dd MMM yyyy HH:mm")</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h4>Account Not Found</h4>
+                <p class="text-muted">The requested account could not be found.</p>
+                <a href="/SuperAdmin/Accounts" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .btn-outline-primary {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .text-primary {
+            color: #667eea !important;
+        }
+        
+        .form-label {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .form-control-plaintext {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+    </style>
+}

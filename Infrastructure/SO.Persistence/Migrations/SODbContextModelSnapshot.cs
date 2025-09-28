@@ -16,7 +16,7 @@ namespace SO.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "6.0.20")
+                .HasAnnotation("ProductVersion", "8.0.0")
                 .HasAnnotation("Relational:MaxIdentifierLength", 64);
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -137,6 +137,9 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -150,7 +153,13 @@ namespace SO.Persistence.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("ManagedById")
+                        .HasColumnType("varchar(255)");
+
                     b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ModifiedById")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("ModifiedDate")
@@ -167,6 +176,8 @@ namespace SO.Persistence.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ManagedById");
+
                     b.ToTable("Accounts");
                 });
 
@@ -179,9 +190,8 @@ namespace SO.Persistence.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("Active")
-                        .IsRequired()
-                        .HasColumnType("longtext");
+                    b.Property<bool>("Active")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("AddressLine1")
                         .HasColumnType("longtext");
@@ -206,6 +216,9 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
@@ -222,6 +235,9 @@ namespace SO.Persistence.Migrations
                         .HasColumnType("longtext");
 
                     b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ModifiedById")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("ModifiedDate")
@@ -250,14 +266,54 @@ namespace SO.Persistence.Migrations
                     b.ToTable("Addresses");
                 });
 
+            modelBuilder.Entity("SO.Domain.Entities.Identity.AppPermission", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(200)
+                        .HasColumnType("varchar(200)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Module")
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Permissions");
+                });
+
             modelBuilder.Entity("SO.Domain.Entities.Identity.AppRole", b =>
                 {
                     b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(255)");
 
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("longtext");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("Name")
                         .HasMaxLength(256)
@@ -279,6 +335,7 @@ namespace SO.Persistence.Migrations
             modelBuilder.Entity("SO.Domain.Entities.Identity.AppUser", b =>
                 {
                     b.Property<string>("Id")
+                        .ValueGeneratedOnAdd()
                         .HasColumnType("varchar(255)");
 
                     b.Property<int>("AccessFailedCount")
@@ -287,6 +344,9 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -298,11 +358,17 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("FullName")
                         .HasColumnType("longtext");
 
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastLoginDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<DateTimeOffset?>("LockoutEnd")
-                        .HasColumnType("datetime(6)");
+                        .HasColumnType("datetime");
 
                     b.Property<string>("NormalizedEmail")
                         .HasMaxLength(256)
@@ -320,6 +386,9 @@ namespace SO.Persistence.Migrations
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ProfilePicture")
+                        .HasColumnType("longtext");
 
                     b.Property<string>("SecurityStamp")
                         .HasColumnType("longtext");
@@ -343,91 +412,48 @@ namespace SO.Persistence.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.BusinessObjective", b =>
+            modelBuilder.Entity("SO.Domain.Entities.Identity.PermissionRole", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Alignment")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
+                        .HasColumnType("int");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<bool>("IsDeleted")
+                    b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
+                    b.Property<int>("PermissionId")
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Objective")
+                    b.Property<string>("RoleId")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
+                        .HasColumnType("varchar(255)");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ProposalId");
+                    b.HasIndex("RoleId");
 
-                    b.ToTable("BusinessObjectives");
+                    b.HasIndex("PermissionId", "RoleId")
+                        .IsUnique();
+
+                    b.ToTable("PermissionRoles");
                 });
 
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CriticalSuccessFactor", b =>
+            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.BusinessPartner", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("char(36)");
 
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("CriticalSuccessFactors");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CustomerBeneficiary", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Beneficiary")
-                        .IsRequired()
+                    b.Property<string>("ContactInfo")
                         .HasColumnType("longtext");
 
                     b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CreatedById")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("CreatedDate")
@@ -439,96 +465,21 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("NeedsAndConcern")
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("CustomerBeneficiaries");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.Milestone", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsCompleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
+                    b.Property<string>("ModifiedById")
                         .HasColumnType("longtext");
 
                     b.Property<DateTime>("ModifiedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("Name")
-                        .IsRequired()
+                    b.Property<string>("Notes")
                         .HasColumnType("longtext");
 
-                    b.Property<DateTime>("PlannedCompletionDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("Milestones");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ProjectStakeholder", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
+                    b.Property<string>("PartnerName")
                         .IsRequired()
                         .HasColumnType("longtext");
 
                     b.Property<Guid>("ProposalId")
                         .HasColumnType("char(36)");
-
-                    b.Property<string>("Responsibilities")
-                        .HasColumnType("longtext");
 
                     b.Property<string>("Role")
                         .IsRequired()
@@ -538,7 +489,54 @@ namespace SO.Persistence.Migrations
 
                     b.HasIndex("ProposalId");
 
-                    b.ToTable("ProjectStakeholders");
+                    b.ToTable("BusinessPartners");
+                });
+
+            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CompetitionCompany", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CompanyName")
+                        .IsRequired()
+                        .HasColumnType("longtext");
+
+                    b.Property<decimal?>("CompetedPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ModifiedBy")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("longtext");
+
+                    b.Property<DateTime>("ModifiedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("longtext");
+
+                    b.Property<Guid>("ProposalId")
+                        .HasColumnType("char(36)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProposalId");
+
+                    b.ToTable("CompetitionCompanies");
                 });
 
             modelBuilder.Entity("SO.Domain.Entities.ProposalModule.Proposal", b =>
@@ -550,8 +548,17 @@ namespace SO.Persistence.Migrations
                     b.Property<Guid>("AccountId")
                         .HasColumnType("char(36)");
 
+                    b.Property<Guid?>("AddressId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("CommercialNote")
+                        .HasColumnType("longtext");
+
                     b.Property<string>("CreatedBy")
                         .HasColumnType("longtext");
+
+                    b.Property<string>("CreatedById")
+                        .HasColumnType("varchar(255)");
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime(6)");
@@ -560,7 +567,10 @@ namespace SO.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Interoperability")
+                    b.Property<int?>("DeliveryDurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("GeneralNote")
                         .HasColumnType("longtext");
 
                     b.Property<bool>("IsDeleted")
@@ -569,20 +579,26 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("ModifiedBy")
                         .HasColumnType("longtext");
 
+                    b.Property<string>("ModifiedById")
+                        .HasColumnType("longtext");
+
                     b.Property<DateTime>("ModifiedDate")
                         .HasColumnType("datetime(6)");
 
-                    b.Property<string>("OutsourcingPlans")
+                    b.Property<int?>("OfferDurationDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OfferOwner")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("Phasing")
+                    b.Property<string>("PaymentMethod")
+                        .HasColumnType("longtext");
+
+                    b.Property<string>("PaymentTerm")
                         .HasColumnType("longtext");
 
                     b.Property<string>("PreparedBy")
                         .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<string>("ProjectApproach")
                         .HasColumnType("longtext");
 
                     b.Property<string>("ProjectDescription")
@@ -595,11 +611,17 @@ namespace SO.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("longtext");
 
-                    b.Property<string>("StatementOfNeed")
+                    b.Property<string>("QuantityUnit")
                         .HasColumnType("longtext");
+
+                    b.Property<decimal?>("QuantityValue")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<int>("Status")
                         .HasColumnType("int");
+
+                    b.Property<decimal?>("TargetPrice")
+                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("TotalAmount")
                         .HasColumnType("decimal(18,2)");
@@ -611,128 +633,9 @@ namespace SO.Persistence.Migrations
 
                     b.HasIndex("AccountId");
 
+                    b.HasIndex("CreatedById");
+
                     b.ToTable("Proposals");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ProposalItem", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<int>("Quantity")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Unit")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("ProposalItems");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ResourceRequirement", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("Resource")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("ResourceRequirements");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.SuccessCriterion", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("char(36)");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("Description")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<string>("ModifiedBy")
-                        .HasColumnType("longtext");
-
-                    b.Property<DateTime>("ModifiedDate")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<Guid>("ProposalId")
-                        .HasColumnType("char(36)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ProposalId");
-
-                    b.ToTable("SuccessCriteria");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -786,6 +689,14 @@ namespace SO.Persistence.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("SO.Domain.Entities.AccountModule.Account", b =>
+                {
+                    b.HasOne("SO.Domain.Entities.Identity.AppUser", null)
+                        .WithMany("ManagedAccounts")
+                        .HasForeignKey("ManagedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+                });
+
             modelBuilder.Entity("SO.Domain.Entities.AccountModule.Address", b =>
                 {
                     b.HasOne("SO.Domain.Entities.AccountModule.Account", "Account")
@@ -797,10 +708,29 @@ namespace SO.Persistence.Migrations
                     b.Navigation("Account");
                 });
 
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.BusinessObjective", b =>
+            modelBuilder.Entity("SO.Domain.Entities.Identity.PermissionRole", b =>
+                {
+                    b.HasOne("SO.Domain.Entities.Identity.AppPermission", "Permission")
+                        .WithMany("PermissionRoles")
+                        .HasForeignKey("PermissionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("SO.Domain.Entities.Identity.AppRole", "Role")
+                        .WithMany()
+                        .HasForeignKey("RoleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Permission");
+
+                    b.Navigation("Role");
+                });
+
+            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.BusinessPartner", b =>
                 {
                     b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("BusinessObjectives")
+                        .WithMany("BusinessPartners")
                         .HasForeignKey("ProposalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -808,43 +738,10 @@ namespace SO.Persistence.Migrations
                     b.Navigation("Proposal");
                 });
 
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CriticalSuccessFactor", b =>
+            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CompetitionCompany", b =>
                 {
                     b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("CriticalSuccessFactors")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.CustomerBeneficiary", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("CustomerBeneficiaries")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.Milestone", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("Milestones")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ProjectStakeholder", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("ProjectStakeholders")
+                        .WithMany("CompetitionCompanies")
                         .HasForeignKey("ProposalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -860,40 +757,12 @@ namespace SO.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("SO.Domain.Entities.Identity.AppUser", null)
+                        .WithMany("CreatedProposals")
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("Account");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ProposalItem", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("ProposalItems")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ResourceRequirement", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("ResourceRequirements")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
-                });
-
-            modelBuilder.Entity("SO.Domain.Entities.ProposalModule.SuccessCriterion", b =>
-                {
-                    b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("SuccessCriteria")
-                        .HasForeignKey("ProposalId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Proposal");
                 });
 
             modelBuilder.Entity("SO.Domain.Entities.AccountModule.Account", b =>
@@ -903,23 +772,23 @@ namespace SO.Persistence.Migrations
                     b.Navigation("Proposals");
                 });
 
+            modelBuilder.Entity("SO.Domain.Entities.Identity.AppPermission", b =>
+                {
+                    b.Navigation("PermissionRoles");
+                });
+
+            modelBuilder.Entity("SO.Domain.Entities.Identity.AppUser", b =>
+                {
+                    b.Navigation("CreatedProposals");
+
+                    b.Navigation("ManagedAccounts");
+                });
+
             modelBuilder.Entity("SO.Domain.Entities.ProposalModule.Proposal", b =>
                 {
-                    b.Navigation("BusinessObjectives");
+                    b.Navigation("BusinessPartners");
 
-                    b.Navigation("CriticalSuccessFactors");
-
-                    b.Navigation("CustomerBeneficiaries");
-
-                    b.Navigation("Milestones");
-
-                    b.Navigation("ProjectStakeholders");
-
-                    b.Navigation("ProposalItems");
-
-                    b.Navigation("ResourceRequirements");
-
-                    b.Navigation("SuccessCriteria");
+                    b.Navigation("CompetitionCompanies");
                 });
 #pragma warning restore 612, 618
         }

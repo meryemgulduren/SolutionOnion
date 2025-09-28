@@ -9,5 +9,7 @@ namespace SO.Application.Features.Queries.AccountModule.Address.GetAllAddress
 {
     public class GetAllAddressQueryRequest : IRequest<GetAllAddressQueryResponse>
     {
+        public string? CurrentUserId { get; set; }
+        public bool IsAdmin { get; set; } = false;
     }
 }

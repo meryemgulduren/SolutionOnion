@@ -13,6 +13,11 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
         public string CompanyName { get; set; }
         public DateTime ProposalDate { get; set; }
         public decimal TotalAmount { get; set; }
+        public string Currency { get; set; }
         public string Status { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+        public string? PreparedBy { get; set; }
+        public string? CreatedById { get; set; } // Kullanıcı ID'si
     }
 }

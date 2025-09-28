@@ -1,14 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using SO.Application.Abstractions.Services.ProposalModule;
-using SO.Application.DTOs.ProposalModule.BusinessObjective;
-using SO.Application.DTOs.ProposalModule.CriticalSuccessFactor;
-using SO.Application.DTOs.ProposalModule.Milestone;
+using SO.Application.Abstractions.Services.AccountModule;
 using SO.Application.DTOs.ProposalModule.Proposal;
-using SO.Application.DTOs.ProposalModule.ProposalItem;
-using SO.Application.DTOs.ProposalModule.ResourceRequirement;
-using SO.Application.DTOs.ProposalModule.SuccessCriterion;
-using SO.Application.Repositories.ProposalModule;
+using SO.Application.Repositories;
 using SO.Domain.Entities.ProposalModule;
+using SO.Domain.Entities.AccountModule;
+using SO.Domain.Enums;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,120 +15,222 @@ namespace SO.Persistence.Services.ProposalModule
 {
     public class ProposalService : IProposalService
     {
-        private readonly IProposalWriteRepository _proposalWriteRepository;
-        private readonly IProposalReadRepository _proposalReadRepository;
+        private readonly IWriteRepository<Proposal> _proposalWriteRepository;
+        private readonly IReadRepository<Proposal> _proposalReadRepository;
+        private readonly IAddressService _addressService;
 
-        public ProposalService(IProposalWriteRepository proposalWriteRepository, IProposalReadRepository proposalReadRepository)
+        public ProposalService(IWriteRepository<Proposal> proposalWriteRepository, IReadRepository<Proposal> proposalReadRepository, IAddressService addressService)
         {
             _proposalWriteRepository = proposalWriteRepository;
             _proposalReadRepository = proposalReadRepository;
+            _addressService = addressService;
         }
         public async Task UpdateProposalSummaryAsync(UpdateProposalSummary summary)
         {
-            // Önce ilgili teklifi ve mevcut hedeflerini veritabanından çekiyoruz.
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == summary.ProposalId)
-                .Include(p => p.BusinessObjectives)
-                .FirstOrDefaultAsync();
+            // TÜM İŞLEM write-repo context üzerinden
+            var proposal = await _proposalWriteRepository.Table
+                .FirstOrDefaultAsync(p => p.Id.ToString() == summary.ProposalId);
 
-            if (proposal != null)
-            {
-                // Ana alanları güncelle
-                proposal.ProjectDescription = summary.ProjectDescription;
-                proposal.StatementOfNeed = summary.StatementOfNeed;
+            if (proposal == null) return;
 
-                // Mevcut hedefleri temizle
-                proposal.BusinessObjectives.Clear();
+            // Ana alanlar
+            proposal.ProjectDescription = summary.ProjectDescription;
+            proposal.OfferDurationDays = summary.OfferDurationDays;
+            proposal.DeliveryDurationDays = summary.DeliveryDurationDays;
+            proposal.OfferOwner = summary.OfferOwner;
+            proposal.QuantityValue = summary.QuantityValue;
+            proposal.QuantityUnit = summary.QuantityUnit;
+            proposal.GeneralNote = summary.GeneralNote;
 
-                // Formdan gelen yeni hedefleri ekle
-                foreach (var objectiveDto in summary.BusinessObjectives)
-                {
-                    proposal.BusinessObjectives.Add(new Domain.Entities.ProposalModule.BusinessObjective
-                    {
-                        Objective = objectiveDto.Objective,
-                        Alignment = objectiveDto.Alignment,
+            if (!string.IsNullOrWhiteSpace(summary.AddressId) && Guid.TryParse(summary.AddressId, out var addrId))
+                proposal.AddressId = addrId;
+            else
+                proposal.AddressId = null;
 
-                    });
-                }
+            // Ticari alanlar
+            proposal.TargetPrice = summary.TargetPrice;
+            proposal.PaymentMethod = summary.PaymentMethod;
+            proposal.PaymentTerm = summary.PaymentTerm;
+            proposal.CommercialNote = summary.CommercialNote;
+            proposal.ValidUntilDate = summary.ValidUntilDate;
 
-                // Değişiklikleri kaydet
-                await _proposalWriteRepository.SaveAsync();
-            }
+            // (İsteğe bağlı) explicit update
+            _proposalWriteRepository.Update(proposal);
+
+            await _proposalWriteRepository.SaveAsync();
         }
+
 
         public async Task<string> CreateProposalAsync(CreateProposal createProposal)
         {
-            var newProposal = new Proposal
+            try
             {
-                AccountId = Guid.Parse(createProposal.AccountId),
-                ProposalName = createProposal.ProposalName,
-                PreparedBy = createProposal.PreparedBy,
-                ProjectDescription = createProposal.ProjectDescription, // YENİ
-                StatementOfNeed = createProposal.StatementOfNeed,       // YENİ
-                ProposalDate = DateTime.UtcNow,
-                Status = ProposalStatus.Draft
-            };
-
-            // Gelen DTO'daki BusinessObjectives listesini Entity'ye çevirip ekliyoruz
-            foreach (var objective in createProposal.BusinessObjectives)
-            {
-                newProposal.BusinessObjectives.Add(new BusinessObjective
+                var newProposal = new Proposal
                 {
-                    Objective = objective.Objective,
-                    Alignment = objective.Alignment
-                });
-            }
+                    AccountId = Guid.Parse(createProposal.AccountId),
+                    ProposalName = createProposal.ProposalName,
+                    PreparedBy = createProposal.PreparedBy,
+                    ProjectDescription = createProposal.ProjectDescription,
+                    ProposalDate = DateTime.UtcNow,
+                    Status = ProposalStatus.Draft,
+                    Currency = "TRY"
+                };
 
-            // Gelen DTO'daki ProposalItems listesini Entity'ye çevirip ekliyoruz
-            foreach (var item in createProposal.ProposalItems)
+                newProposal.TotalAmount = 0;
+
+                await _proposalWriteRepository.AddAsync(newProposal);
+                await _proposalWriteRepository.SaveAsync();
+
+                return newProposal.Id.ToString();
+            }
+            catch (Exception ex)
             {
-                newProposal.ProposalItems.Add(new ProposalItem
-                {
-                    Name = item.Name,
-                    Quantity = item.Quantity,
-                    Unit = item.Unit,
-                    UnitPrice = item.UnitPrice
-                });
+                throw new Exception($"Proposal creation failed: {ex.Message}", ex);
             }
-
-            newProposal.TotalAmount = newProposal.ProposalItems.Sum(pi => pi.TotalPrice);
-
-            await _proposalWriteRepository.AddAsync(newProposal);
-            await _proposalWriteRepository.SaveAsync();
-
-            return newProposal.Id.ToString(); // YENİ: Oluşturulan teklifin ID'sini döndürüyoruz.
         }
 
         public async Task DeleteProposalAsync(string id)
         {
-            await _proposalWriteRepository.RemoveAsync(id);
-            await _proposalWriteRepository.SaveAsync();
+            try
+            {
+                // Önce proposal'ın var olup olmadığını kontrol et
+                var proposal = await _proposalReadRepository.GetByIdAsync(id);
+                if (proposal == null)
+                {
+                    throw new Exception($"Proposal with ID {id} not found");
+                }
+
+                await _proposalWriteRepository.RemoveAsync(id);
+                await _proposalWriteRepository.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to delete proposal: {ex.Message}", ex);
+            }
         }
 
-        public async Task<List<ListProposal>> GetAllProposalsAsync()
+        public async Task<List<ListProposal>> GetAllProposalsAsync(string? currentUserId = null, bool isAdmin = false)
         {
-            return await _proposalReadRepository.GetAll(false)
-                .Include(p => p.Account)
-                .Select(p => new ListProposal
-                {
-                    Id = p.Id,
-                    ProposalName = p.ProposalName,
-                    CompanyName = p.Account.CompanyName,
-                    ProposalDate = p.ProposalDate,
-                    TotalAmount = p.TotalAmount,
-                    Status = p.Status.ToString()
-                }).ToListAsync();
+            // Admin değilse ve kullanıcı ID varsa, sadece kendi proposal'larını getir
+            if (!isAdmin && !string.IsNullOrEmpty(currentUserId))
+            {
+                return await _proposalReadRepository.GetAll(false)
+                    .Include(p => p.Account)
+                    .Where(p => p.CreatedById == currentUserId)
+                    .Select(p => new ListProposal
+                    {
+                        Id = p.Id,
+                        ProposalName = p.ProposalName,
+                        CompanyName = p.Account.CompanyName,
+                        ProposalDate = p.ProposalDate,
+                        TotalAmount = p.TotalAmount,
+                        Status = p.Status.ToString(),
+                        CreatedDate = p.CreatedDate,
+                        UpdatedDate = p.ModifiedDate,
+                        PreparedBy = p.PreparedBy,
+                        CreatedById = p.CreatedById,
+                        Currency = p.Currency
+                    }).ToListAsync();
+            }
+            else
+            {
+                // Admin ise tüm proposal'ları getir
+                return await _proposalReadRepository.GetAll(false)
+                    .Include(p => p.Account)
+                    .Select(p => new ListProposal
+                    {
+                        Id = p.Id,
+                        ProposalName = p.ProposalName,
+                        CompanyName = p.Account.CompanyName,
+                        ProposalDate = p.ProposalDate,
+                        TotalAmount = p.TotalAmount,
+                        Status = p.Status.ToString(),
+                        CreatedDate = p.CreatedDate,
+                        UpdatedDate = p.ModifiedDate,
+                        PreparedBy = p.PreparedBy,
+                        CreatedById = p.CreatedById,
+                        Currency = p.Currency
+                    }).ToListAsync();
+            }
         }
 
         public async Task<SingleProposal> GetProposalByIdAsync(string id)
         {
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == id)
+            System.Diagnostics.Debug.WriteLine($"ProposalService.GetProposalByIdAsync called with id: '{id}'");
+            
+            // Önce tüm proposal'ları listele
+            var allProposals = await _proposalReadRepository.GetAll(false).ToListAsync();
+            System.Diagnostics.Debug.WriteLine($"Total proposals in database: {allProposals.Count}");
+            
+            foreach (var p in allProposals)
+            {
+                System.Diagnostics.Debug.WriteLine($"Proposal ID: {p.Id}, ToString: '{p.Id.ToString()}', Name: {p.ProposalName}");
+            }
+            
+            // Guid.TryParse ile ID'yi kontrol et
+            if (!Guid.TryParse(id, out Guid proposalGuid))
+            {
+                System.Diagnostics.Debug.WriteLine($"Invalid GUID format: '{id}'");
+                return null;
+            }
+            
+            var proposal = await _proposalReadRepository.GetWhere(p => p.Id == proposalGuid)
                 .Include(p => p.Account)
-                .Include(p => p.BusinessObjectives) // YENİ
-                .Include(p => p.ProposalItems)
-                .Include(p => p.Milestones)
-                .Include(p => p.SuccessCriteria)
-                .Include(p => p.CriticalSuccessFactors)
                 .FirstOrDefaultAsync();
+                
+            System.Diagnostics.Debug.WriteLine($"Found proposal: {proposal != null}");
+
+            // Address bilgilerini ayrıca çek
+            SO.Application.DTOs.AccountModule.Address.SingleAddress? address = null;
+            if (proposal?.AddressId.HasValue == true)
+            {
+                try
+                {
+                    System.Diagnostics.Debug.WriteLine($"ProposalService: AddressId = {proposal.AddressId.Value}");
+                    address = await _addressService.GetAddressByIdAsync(proposal.AddressId.Value.ToString());
+                    System.Diagnostics.Debug.WriteLine($"ProposalService: Address found - Fax: {address?.Fax}, AddressLine1: {address?.AddressLine1}");
+                }
+                catch (ArgumentException ex)
+                {
+                    System.Diagnostics.Debug.WriteLine($"ProposalService: Address not found - {ex.Message}");
+                    address = null;
+                }
+            }
+            else
+            {
+                System.Diagnostics.Debug.WriteLine("ProposalService: No AddressId found, trying to get default address for Account");
+                // AddressId yoksa Account'ın default adresini çek
+                if (proposal?.AccountId != null)
+                {
+                    try
+                    {
+                        var allAddresses = await _addressService.GetAllAddressesAsync();
+                        var accountAddresses = allAddresses.Where(a => a.AccountId == proposal.AccountId.ToString()).ToList();
+                        
+                        // Önce default adresi bul
+                        var defaultAddress = accountAddresses.FirstOrDefault(a => a.isDefault);
+                        
+                        // Default yoksa ilk adresi al
+                        if (defaultAddress == null && accountAddresses.Any())
+                        {
+                            defaultAddress = accountAddresses.First();
+                        }
+                        
+                        // Seçilen adresi SingleAddress olarak çek
+                        if (defaultAddress != null)
+                        {
+                            address = await _addressService.GetAddressByIdAsync(defaultAddress.Id);
+                        }
+                        
+                        System.Diagnostics.Debug.WriteLine($"ProposalService: Default address found - Fax: {address?.Fax}, AddressLine1: {address?.AddressLine1}");
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"ProposalService: Error getting default address - {ex.Message}");
+                        address = null;
+                    }
+                }
+            }
 
             if (proposal == null)
                 return null;
@@ -140,56 +239,37 @@ namespace SO.Persistence.Services.ProposalModule
             {
                 Id = proposal.Id,
                 ProposalName = proposal.ProposalName,
+                AccountId = proposal.AccountId,
                 CompanyName = proposal.Account.CompanyName,
                 Status = proposal.Status.ToString(),
                 ProposalDate = proposal.ProposalDate,
-                ProjectDescription = proposal.ProjectDescription, // YENİ
-                StatementOfNeed = proposal.StatementOfNeed,       // YENİ
+                ProjectDescription = proposal.ProjectDescription,
+                OfferDurationDays = proposal.OfferDurationDays,
+                DeliveryDurationDays = proposal.DeliveryDurationDays,
+                OfferOwner = proposal.OfferOwner,
+                QuantityValue = proposal.QuantityValue,
+                QuantityUnit = proposal.QuantityUnit,
+                GeneralNote = proposal.GeneralNote,
+                AddressId = proposal.AddressId,
+                // Müşteri Bilgileri (Account'tan)
+                CustomerName = proposal.Account?.ContactPerson,
+                CustomerPhone = proposal.Account?.PhoneNumber,
+                CustomerEmail = proposal.Account?.Email,
+                // Müşteri Bilgileri (Address'ten)
+                CustomerFax = address?.Fax,
+                CustomerAddress = address?.AddressLine1,
+                // Ticari
+                TargetPrice = proposal.TargetPrice,
+                PaymentMethod = proposal.PaymentMethod,
+                PaymentTerm = proposal.PaymentTerm,
+                CommercialNote = proposal.CommercialNote,
+                ValidUntilDate = proposal.ValidUntilDate,
                 TotalAmount = proposal.TotalAmount,
                 Currency = proposal.Currency,
-                ProjectApproach = proposal.ProjectApproach,
-               
-                Phasing = proposal.Phasing,
-                OutsourcingPlans = proposal.OutsourcingPlans,
-                Interoperability = proposal.Interoperability,
-
-                BusinessObjectives = proposal.BusinessObjectives.Select(bo => new ListBusinessObjective
-                {
-                    Objective = bo.Objective,
-                    Alignment = bo.Alignment
-                }).ToList(), // YENİ
-
-                ProposalItems = proposal.ProposalItems.Select(pi => new ListProposalItem
-                {
-                    Id = pi.Id,
-                    Name = pi.Name,
-                    Quantity = pi.Quantity,
-                    Unit = pi.Unit,
-                    UnitPrice = pi.UnitPrice,
-                    TotalPrice = pi.TotalPrice
-                }).ToList(),
-
-                Milestones = proposal.Milestones.Select(m => new ListMilestone
-                {
-                    Name = m.Name,
-                    PlannedCompletionDate = m.PlannedCompletionDate,
-                    IsCompleted = m.IsCompleted
-                }).ToList(),
-
-              
-
-                CriticalSuccessFactors = proposal.CriticalSuccessFactors.Select(csf => new ListCriticalSuccessFactor
-                {
-                    Description = csf.Description
-                }).ToList(),
-               
-                ResourceRequirements = proposal.ResourceRequirements
-                .Select(r => new ListResourceRequirement
-                {
-                 Resource = r.Resource,
-                 Description = r.Description
-                 }).ToList(),
-
+                CreatedById = proposal.CreatedById,
+                CreatedDate = proposal.CreatedDate,
+                UpdatedDate = proposal.ModifiedDate,
+                PreparedBy = proposal.PreparedBy
             };
         }
 
@@ -208,126 +288,7 @@ namespace SO.Persistence.Services.ProposalModule
                 await _proposalWriteRepository.SaveAsync();
             }
         }
-        public async Task UpdateProposalInitiatorSponsorAsync(UpdateProposalInitiatorSponsor initiatorSponsor)
-        {
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == initiatorSponsor.ProposalId)
-                .Include(p => p.ProjectStakeholders)
-                .FirstOrDefaultAsync();
-
-            if (proposal != null)
-            {
-                proposal.ProjectStakeholders.Clear();
-                foreach (var stakeholderDto in initiatorSponsor.Stakeholders)
-                {
-                    proposal.ProjectStakeholders.Add(new Domain.Entities.ProposalModule.ProjectStakeholder
-                    {
-                        Role = stakeholderDto.Role,
-                        Name = stakeholderDto.Name,
-                        Responsibilities = stakeholderDto.Responsibilities,
-                        ProposalId = proposal.Id
-                    });
-                }
-                await _proposalWriteRepository.SaveAsync();
-            }
-        }
-        public async Task UpdateProposalCustomersAndDeliverablesAsync(UpdateProposalCustomersAndDeliverables dto)
-        {
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == dto.ProposalId)
-                .Include(p => p.CustomerBeneficiaries)
-                .Include(p => p.Milestones)
-                .FirstOrDefaultAsync();
-
-            if (proposal != null)
-            {
-                // Mevcut listeleri temizle
-                proposal.CustomerBeneficiaries.Clear();
-                proposal.Milestones.Clear();
-
-                // Formdan gelen yeni Customer/Beneficiary'leri ekle
-                foreach (var beneficiaryDto in dto.CustomerBeneficiaries)
-                {
-                    proposal.CustomerBeneficiaries.Add(new Domain.Entities.ProposalModule.CustomerBeneficiary
-                    {
-                        Beneficiary = beneficiaryDto.Beneficiary,
-                        NeedsAndConcern = beneficiaryDto.NeedsAndConcern,
-                         ProposalId = proposal.Id
-                    });
-                }
-
-                // Formdan gelen yeni Deliverable'ları (Milestone) ekle
-                foreach (var milestoneDto in dto.Milestones)
-                {
-                    proposal.Milestones.Add(new Domain.Entities.ProposalModule.Milestone
-                    {
-                        Name = milestoneDto.Name,
-                        Description = milestoneDto.Description,
-                        PlannedCompletionDate = milestoneDto.PlannedCompletionDate,
-                        ProposalId = proposal.Id
-                    });
-                }
-
-                await _proposalWriteRepository.SaveAsync();
-            }
-
-        }
-        public async Task UpdateProposalApproachAsync(UpdateProposalApproach dto)
-        {
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == dto.ProposalId)
-                .Include(p => p.Milestones)
-                .FirstOrDefaultAsync();
-
-            if (proposal != null)
-            {
-                // Metin alanlarını güncelle
-                proposal.Phasing = dto.Phasing;
-                proposal.OutsourcingPlans = dto.OutsourcingPlans;
-                proposal.Interoperability = dto.Interoperability;
-
-                // Mevcut Timeframe (Milestones) listesini temizle
-                proposal.Milestones.Clear();
-
-                // Formdan gelen yeni Timeframe (Milestones) satırlarını ekle
-                if (dto.Milestones != null)
-                {
-                    foreach (var milestoneDto in dto.Milestones)
-                    {
-                        proposal.Milestones.Add(new Domain.Entities.ProposalModule.Milestone
-                        {
-                            Name = milestoneDto.Name,
-                            Description = milestoneDto.Description,
-                            PlannedCompletionDate = milestoneDto.PlannedCompletionDate,
-                            ProposalId = proposal.Id
-                        });
-                    }
-                }
-
-                await _proposalWriteRepository.SaveAsync();
-            }
-        }
-        public async Task UpdateProposalResourceRequirementsAsync(UpdateProposalResourceRequirements dto)
-        {
-            var proposal = await _proposalReadRepository.GetWhere(p => p.Id.ToString() == dto.ProposalId)
-                .Include(p => p.ResourceRequirements)
-                .FirstOrDefaultAsync();
-
-            if (proposal != null)
-            {
-                proposal.ResourceRequirements.Clear();
-                if (dto.ResourceRequirements != null)
-                {
-                    foreach (var requirementDto in dto.ResourceRequirements)
-                    {
-                        proposal.ResourceRequirements.Add(new Domain.Entities.ProposalModule.ResourceRequirement
-                        {
-                            Resource = requirementDto.Resource,
-                            Description = requirementDto.Description,
-                            ProposalId = proposal.Id // 💥 EKLENEN SATIR
-                        });
-                    }
-                }
-                await _proposalWriteRepository.SaveAsync();
-            }
-        }
+        // Eski adım bazlı güncelleme metotları kaldırıldı
     }
 }
 

@@ -1,0 +1,185 @@
+@{
+    ViewData["Title"] = "File Upload";
+}
+
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="fw-bold text-primary"><i class="fas fa-cloud-upload-alt me-2"></i>File Upload</h1>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0"><i class="fas fa-upload me-2"></i>Dosya Yükle</h5>
+                </div>
+                <div class="card-body">
+                    <form id="uploadForm" enctype="multipart/form-data">
+                        <div class="mb-3">
+                            <label for="files" class="form-label">Dosyaları Seçin:</label>
+                            <input type="file" class="form-control" id="files" name="files" multiple>
+                        </div>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>Yükle
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0"><i class="fas fa-list me-2"></i>Yüklenen Dosyalar</h5>
+                </div>
+                <div class="card-body">
+                    <button id="refreshFiles" class="btn btn-outline-success mb-3">
+                        <i class="fas fa-sync-alt me-2"></i>Listeyi Yenile
+                    </button>
+                    <div id="filesList">
+                        <p class="text-muted">Dosya listesi yükleniyor...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            loadFiles();
+
+            // Dosya yükleme
+            $('#uploadForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData();
+                const files = $('#files')[0].files;
+                
+                if (files.length === 0) {
+                    showAlert('Lütfen dosya seçin!', 'warning');
+                    return;
+                }
+
+                for (let i = 0; i < files.length; i++) {
+                    formData.append('files', files[i]);
+                }
+
+                $.ajax({
+                    url: '/File/Upload',
+                    type: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            $('#uploadForm')[0].reset();
+                            loadFiles();
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Dosya yükleme hatası: ' + error, 'danger');
+                    }
+                });
+            });
+
+            // Dosya listesini yenile
+            $('#refreshFiles').on('click', function() {
+                loadFiles();
+            });
+
+            function loadFiles() {
+                $.ajax({
+                    url: '/File/GetFiles',
+                    type: 'GET',
+                    success: function(response) {
+                        if (response.success) {
+                            displayFiles(response.files);
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Dosya listesi alınamadı: ' + error, 'danger');
+                    }
+                });
+            }
+
+            function displayFiles(files) {
+                const filesList = $('#filesList');
+                
+                if (files.length === 0) {
+                    filesList.html('<p class="text-muted">Henüz dosya yüklenmemiş.</p>');
+                    return;
+                }
+
+                let html = '<div class="list-group">';
+                files.forEach(function(file) {
+                    html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <i class="fas fa-file me-2"></i>
+                                <span>${file}</span>
+                            </div>
+                            <button class="btn btn-sm btn-danger delete-file" data-filename="${file}">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+                
+                filesList.html(html);
+
+                // Dosya silme
+                $('.delete-file').on('click', function() {
+                    const fileName = $(this).data('filename');
+                    if (confirm(`"${fileName}" dosyasını silmek istediğinizden emin misiniz?`)) {
+                        deleteFile(fileName);
+                    }
+                });
+            }
+
+            function deleteFile(fileName) {
+                $.ajax({
+                    url: '/File/Delete',
+                    type: 'POST',
+                    data: { fileName: fileName },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert(response.message, 'success');
+                            loadFiles();
+                        } else {
+                            showAlert(response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Dosya silme hatası: ' + error, 'danger');
+                    }
+                });
+            }
+
+            function showAlert(message, type) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                $('#alertContainer').html(alertHtml);
+                
+                // 5 saniye sonra otomatik kapat
+                setTimeout(function() {
+                    $('.alert').alert('close');
+                }, 5000);
+            }
+        });
+    </script>
+} 

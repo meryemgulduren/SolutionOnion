@@ -1,0 +1,28 @@
+@{
+    ViewData["Title"] = "Hesabı Sil";
+}
+
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6 col-lg-5">
+            <div class="card shadow">
+                <div class="card-header bg-danger text-white">Hesabı Sil</div>
+                <div class="card-body">
+                    <div class="alert alert-warning">
+                        Bu işlem geri alınamaz. Hesabınız ve ilgili verileriniz silinecektir.
+                    </div>
+                    <form asp-action="DeleteConfirmed" method="post">
+                        <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+                        <div class="mb-3">
+                            <label class="form-label">Mevcut Şifre</label>
+                            <input name="currentPassword" type="password" class="form-control" />
+                        </div>
+                        <button type="submit" class="btn btn-danger w-100">Hesabımı Sil</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

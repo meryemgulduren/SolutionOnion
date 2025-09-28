@@ -1,13 +1,8 @@
 ﻿using SO.Application.Abstractions.Services.AccountModule;
-using SO.Domain.Entities.AccountModule;
 using MediatR;
-using Microsoft.AspNetCore.Server.IISIntegration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.Metrics;
-using System.IO;
 using System.Linq;
-using System.Numerics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -45,7 +40,7 @@ namespace SO.Application.Features.Commands.AccountModule.Address.CreateAddress
             });
             return new()
             {
-
+                Succeeded = true
             };
         }
     }

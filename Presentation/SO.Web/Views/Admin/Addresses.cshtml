@@ -1,0 +1,224 @@
+@model SO.Application.Features.Queries.AccountModule.Address.GetAllAddress.GetAllAddressQueryResponse
+
+@{
+    ViewData["Title"] = "All Addresses - Admin";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                All Addresses
+            </h1>
+            <p class="mb-0 text-muted">Manage all addresses across the system</p>
+        </div>
+        <div>
+            <a asp-controller="Addresses" asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i>Add New Address
+            </a>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Filters Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchInput" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by address name or city...">
+                </div>
+                <div class="col-md-3">
+                    <label for="typeFilter" class="form-label">Type</label>
+                    <select class="form-select" id="typeFilter">
+                        <option value="all">All Types</option>
+                        <option value="Billing">Billing</option>
+                        <option value="Shipping">Shipping</option>
+                        <option value="Office">Office</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="userFilter" class="form-label">Created By</label>
+                    <select class="form-select" id="userFilter">
+                        <option value="all">All Users</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="searchBtn">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                        <button class="btn btn-secondary" id="clearFilters">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Addresses Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>Address List
+                <span class="badge bg-primary ms-2" id="addressCount">@((Model?.Result as System.Collections.Generic.List<SO.Application.DTOs.AccountModule.Address.ListAddress>)?.Count ?? 0)</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="addressesTable" class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-map-marker-alt me-2"></i>Address Name</th>
+                            <th><i class="fas fa-map me-2"></i>Address Line</th>
+                            <th><i class="fas fa-city me-2"></i>City</th>
+                            <th><i class="fas fa-flag me-2"></i>State</th>
+                            <th><i class="fas fa-mail-bulk me-2"></i>Postal Code</th>
+                            <th><i class="fas fa-building me-2"></i>Company</th>
+                            <th><i class="fas fa-user-plus me-2"></i>Created By</th>
+                            <th><i class="fas fa-calendar me-2"></i>Created Date</th>
+                            <th class="text-center"><i class="fas fa-cogs me-2"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="addressesTableBody">
+                        @{
+                            var addresses = Model?.Result as System.Collections.Generic.List<SO.Application.DTOs.AccountModule.Address.ListAddress>;
+                        }
+                        @if (addresses != null && addresses.Any())
+                        {
+                            @foreach (var address in addresses)
+                            {
+                                <tr>
+                                    <td>@address.AddressName</td>
+                                    <td>@address.AddressLine</td>
+                                    <td>@address.City</td>
+                                    <td>@address.State</td>
+                                    <td>@address.PostalCode</td>
+                                    <td>@address.CompanyName</td>
+                                    <td>@address.CreatedBy</td>
+                                    <td>@address.CreatedDate.ToString("dd/MM/yyyy")</td>
+                                    <td class="text-center">
+                                        <div class="btn-group" role="group">
+                                            <a href="@Url.Action("Edit", "Addresses", new { id = address.Id })" class="btn btn-sm btn-outline-primary">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="@Url.Action("Delete", "Addresses", new { id = address.Id })" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="9" class="text-center text-muted">
+                                    <i class="fas fa-info-circle me-2"></i>No addresses found
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <nav aria-label="Addresses pagination">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination will be generated here -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- CSRF Token -->
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            console.log('Admin Addresses page loaded - Server-side rendering');
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .table th {
+            background-color: #f8f9fc;
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .card-header h6 {
+            color: white !important;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #5a5c69;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #4a9a1f 0%, #96d4b7 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+            border: none;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #a6acaf 0%, #1a252f 100%);
+            transform: translateY(-1px);
+        }
+    </style>
+}

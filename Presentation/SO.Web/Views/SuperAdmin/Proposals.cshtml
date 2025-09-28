@@ -1,0 +1,195 @@
+@model SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal.GetAllProposalQueryResponse
+
+@{
+    ViewData["Title"] = "All Proposals - SuperAdmin";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-file-contract text-primary me-2"></i>
+                All Proposals
+            </h1>
+            <p class="mb-0 text-muted">Manage all project proposals across the system</p>
+        </div>
+        <div>
+            <button class="btn btn-primary" id="exportAllWordBtn">
+                <i class="fas fa-file-word me-2"></i>Export All to Word
+            </button>
+            <button class="btn btn-success" id="exportAllExcelBtn">
+                <i class="fas fa-file-excel me-2"></i>Export All to Excel
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Filters Card -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-filter me-2"></i>Filters
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label for="searchInput" class="form-label">Search</label>
+                    <input type="text" class="form-control" id="searchInput" placeholder="Search by name, company, or prepared by...">
+                </div>
+                <div class="col-md-3">
+                    <label for="statusFilter" class="form-label">Status</label>
+                    <select class="form-select" id="statusFilter">
+                        <option value="all">All Statuses</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Active">Active</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="userFilter" class="form-label">Prepared By</label>
+                    <select class="form-select" id="userFilter">
+                        <option value="all">All Users</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">&nbsp;</label>
+                    <div class="d-grid gap-2">
+                        <button class="btn btn-primary" id="searchBtn">
+                            <i class="fas fa-search me-1"></i>Search
+                        </button>
+                        <button class="btn btn-secondary" id="clearFilters">
+                            <i class="fas fa-times me-1"></i>Clear
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Proposals Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>Proposal List
+                <span class="badge bg-primary ms-2" id="proposalCount">0</span>
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table id="proposalsTable" class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th><i class="fas fa-file-signature me-2"></i>Proposal Name</th>
+                            <th><i class="fas fa-building me-2"></i>Company Name</th>
+                            <th><i class="fas fa-user me-2"></i>Prepared By</th>
+                            <th><i class="fas fa-calendar-alt me-2"></i>Date</th>
+                            <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                            <th><i class="fas fa-dollar-sign me-2"></i>Amount</th>
+                            <th class="text-center"><i class="fas fa-cogs me-2"></i>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="proposalsTableBody">
+                        <!-- Data will be loaded via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <nav aria-label="Proposals pagination">
+                <ul class="pagination justify-content-center" id="pagination">
+                    <!-- Pagination will be generated here -->
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+<!-- CSRF Token -->
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script src="~/js/superadmin-proposals.js"></script>
+    <script>
+        $(document).ready(function() {
+            console.log('SuperAdmin Proposals page loaded');
+            superAdminProposalsManager = new SuperAdminProposalsManager();
+            superAdminProposalsManager.init();
+        });
+    </script>
+}
+
+@section Styles {
+    <style>
+        .table th {
+            background-color: #f8f9fc;
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .card-header h6 {
+            color: white !important;
+        }
+        
+        .form-label {
+            font-weight: 600;
+            color: #5a5c69;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #4a9a1f 0%, #96d4b7 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+            border: none;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #a6acaf 0%, #1a252f 100%);
+            transform: translateY(-1px);
+        }
+    </style>
+}

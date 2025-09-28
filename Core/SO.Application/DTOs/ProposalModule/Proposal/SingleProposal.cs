@@ -1,11 +1,4 @@
-﻿using SO.Application.DTOs.ProposalModule.BusinessObjective;
-using SO.Application.DTOs.ProposalModule.CriticalSuccessFactor;
-using SO.Application.DTOs.ProposalModule.CustomerBeneficiary;
-using SO.Application.DTOs.ProposalModule.Milestone;
-using SO.Application.DTOs.ProposalModule.ProjectStakeholder;
-using SO.Application.DTOs.ProposalModule.ProposalItem;
-using SO.Application.DTOs.ProposalModule.ResourceRequirement;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -16,29 +9,56 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
     public class SingleProposal
     {
         public Guid Id { get; set; }
+        public Guid AccountId { get; set; }
         public string ProposalName { get; set; }
         public string CompanyName { get; set; }
+        public string PreparedBy { get; set; }
         public string Status { get; set; }
         public DateTime ProposalDate { get; set; }
         public decimal TotalAmount { get; set; }
         public string Currency { get; set; }
         public string? Description { get; set; }
-        public string? ProjectApproach { get; set; }
+        public string? CreatedById { get; set; }
        
         public string? ProjectDescription { get; set; }
-        public string? Phasing { get; set; }
-        public string? OutsourcingPlans { get; set; }
-        public string? Interoperability { get; set; }
-        public string? StatementOfNeed { get; set; }
-        public List<ListBusinessObjective> BusinessObjectives { get; set; }
-        // İlişkili listeler
-        public List<ListProposalItem> ProposalItems { get; set; }
-        public List<ListMilestone> Milestones { get; set; }
-        
-        public List<ListCriticalSuccessFactor> CriticalSuccessFactors { get; set; }
-        public List<ListProjectStakeholder> ProjectStakeholders { get; set; }
-        public List<ListCustomerBeneficiary> CustomerBeneficiaries { get; set; }
-        public List<ListResourceRequirement> ResourceRequirements { get; set; }
+        public int? OfferDurationDays { get; set; }
+        public int? DeliveryDurationDays { get; set; }
+        public string? OfferOwner { get; set; }
+        public decimal? QuantityValue { get; set; }
+        public string? QuantityUnit { get; set; }
+        public string? GeneralNote { get; set; }
+        public Guid? AddressId { get; set; }
+        // Müşteri Bilgileri (Account'tan)
+        public string? CustomerName { get; set; }
+        public string? CustomerPhone { get; set; }
+        public string? CustomerEmail { get; set; }
+        // Müşteri Bilgileri (Address'ten)
+        public string? CustomerFax { get; set; }
+        public string? CustomerAddress { get; set; }
+        // Ticari
+        public decimal? TargetPrice { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? PaymentTerm { get; set; }
+        public string? CommercialNote { get; set; }
+        public DateTime? ValidUntilDate { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime? UpdatedDate { get; set; }
+        public List<ListCommercialCompetitor> Competitors { get; set; }
+        public List<ListCommercialPartner> Partners { get; set; }
 
+    }
+
+    public class ListCommercialCompetitor
+    {
+        public string CompanyName { get; set; }
+        public decimal? OfferedPrice { get; set; }
+        public string? Note { get; set; }
+    }
+
+    public class ListCommercialPartner
+    {
+        public string CompanyName { get; set; }
+        public string? Role { get; set; }
+        public string? Note { get; set; }
     }
 }

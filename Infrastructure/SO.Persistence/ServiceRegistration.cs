@@ -6,13 +6,12 @@ using SO.Persistence.Repositories;
 using SO.Domain.Entities.Identity;
 using SO.Persistence.Contexts;
 using SO.Application.Abstractions.Services.AccountModule;
-using SO.Application.Repositories.AccountModule; 
-using SO.Persistence.Repositories.AccountModule;
+ 
+
 using SO.Persistence.Services.AccountModule;
 using SO.Application.Abstractions.Services.ProposalModule;
-using SO.Application.Repositories.ProposalModule;
 using SO.Persistence.Services.ProposalModule;
-using SO.Persistence.Repositories.ProposalModule;
+
 using System;
 
 namespace SO.Persistence
@@ -23,8 +22,7 @@ namespace SO.Persistence
         {
             services.AddDbContext<SODbContext>(options => options.UseMySQL(Configuration.ConnectionString));
 
-            services.AddIdentity<AppUser, AppRole>()
-                .AddEntityFrameworkStores<SODbContext>();
+            // Identity servisleri Program.cs'te ekleniyor, burada eklemeye gerek yok
 
             // --- Genel (Generic) Repository Kayıtları ---
             services.AddScoped(typeof(IReadRepository<>), typeof(ReadRepository<>));
@@ -32,18 +30,18 @@ namespace SO.Persistence
 
             // --- Address Modülü Servis Kayıtları ---
             services.AddScoped<IAddressService, AddressService>();
-            services.AddScoped<IAddressReadRepository, AddressReadRepository>();
-            services.AddScoped<IAddressWriteRepository, AddressWriteRepository>();
 
             // --- Account Modülü Servis Kayıtları ---
             services.AddScoped<IAccountService, AccountService>();
-            services.AddScoped<IAccountReadRepository, AccountReadRepository>();
-            services.AddScoped<IAccountWriteRepository, AccountWriteRepository>();
 
             // --- Proposal Modülü Servis Kayıtları ---
             services.AddScoped<IProposalService, ProposalService>();
-            services.AddScoped<IProposalReadRepository, ProposalReadRepository>();
-            services.AddScoped<IProposalWriteRepository, ProposalWriteRepository>();
+            services.AddScoped<IBusinessPartnerService, BusinessPartnerService>();
+            services.AddScoped<ICompetitionCompanyService, CompetitionCompanyService>();
+
+            // --- Database Seeder ---
+            services.AddScoped<SO.Persistence.Seed.DatabaseSeeder>();
+
         }
     }
 }

@@ -9,8 +9,8 @@ namespace SO.Application.Features.Commands.AccountModule.Address.UpdateAddress
 {
     public class UpdateAddressCommandRequest : IRequest<UpdateAddressCommandResponse>
     {
-        public string Id { get; set; }
-        public string AccountId { get; set; }
+        public Guid Id { get; set; }
+        public Guid AccountId { get; set; }
         public bool isDefault { get; set; } = false;
         public string? AddressType { get; set; }
         public string? AddressName { get; set; }
@@ -25,6 +25,6 @@ namespace SO.Application.Features.Commands.AccountModule.Address.UpdateAddress
         public string? Phone { get; set; }
         public string? Fax { get; set; }
         public string? Mail { get; set; }
-        public string Active { get; set; }
+        public bool Active { get; set; } = true;
     }
 }

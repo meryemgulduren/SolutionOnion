@@ -1,0 +1,125 @@
+@using SO.Application.Features.Commands.AccountModule.Account.UpdateAccount
+@model SO.Application.Features.Commands.AccountModule.Account.UpdateAccount.UpdateAccountCommandRequest
+
+@{
+    ViewData["Title"] = "Edit Client";
+}
+
+<div class="container-fluid">
+    <h1 class="fw-bold text-primary mb-4"><i class="fas fa-user-edit me-2"></i>Edit Client</h1>
+    <div class="row">
+        <div class="col-md-6">
+            <form id="editAccountForm" asp-action="Edit" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+                <div class="form-group mb-3">
+                    <label asp-for="CompanyName" class="control-label">Company Name</label>
+                    <input asp-for="CompanyName" class="form-control" placeholder="Enter company name..." />
+                    <span asp-validation-for="CompanyName" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="ContactPerson" class="control-label">Contact Person</label>
+                    <input asp-for="ContactPerson" class="form-control" placeholder="Enter contact person..." />
+                    <span asp-validation-for="ContactPerson" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="Email" class="control-label">Email</label>
+                    <input asp-for="Email" class="form-control" type="email" placeholder="Enter email address..." />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="PhoneNumber" class="control-label">Phone Number</label>
+                    <input asp-for="PhoneNumber" class="form-control" placeholder="Enter phone number..." />
+                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="TaxOffice" class="control-label">Tax Office</label>
+                    <input asp-for="TaxOffice" class="form-control" placeholder="Enter tax office..." />
+                    <span asp-validation-for="TaxOffice" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="TaxNumber" class="control-label">Tax Number</label>
+                    <input asp-for="TaxNumber" class="form-control" placeholder="Enter tax number..." />
+                    <span asp-validation-for="TaxNumber" class="text-danger"></span>
+                </div>
+                <div class="form-group mb-3">
+                    <label asp-for="IsActive" class="form-label">Active</label>
+                    <select asp-for="IsActive" class="form-select">
+                        <option value="true">Active</option>
+                        <option value="false">Inactive</option>
+                    </select>
+                    <span asp-validation-for="IsActive" class="text-danger"></span>
+                </div>
+
+                <div class="form-group mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Save Changes
+                    </button>
+                    <a asp-action="Index" class="btn btn-secondary ms-2">Back to List</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Alert Container -->
+<div id="alertContainer"></div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#editAccountForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = {
+                    Id: $('#Id').val(),
+                    CompanyName: $('#CompanyName').val(),
+                    ContactPerson: $('#ContactPerson').val(),
+                    Email: $('#Email').val(),
+                    PhoneNumber: $('#PhoneNumber').val(),
+                    TaxOffice: $('#TaxOffice').val(),
+                    TaxNumber: $('#TaxNumber').val(),
+                    IsActive: $('#IsActive').val() === 'true'
+                };
+
+                $.ajax({
+                    url: '/Accounts/Update',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    headers: {
+                        'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            showAlert('Account updated successfully!', 'success');
+                            setTimeout(() => {
+                                window.location.href = '/Accounts';
+                            }, 1500);
+                        } else {
+                            showAlert('Error updating account: ' + response.message, 'danger');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        showAlert('Error updating account: ' + error, 'danger');
+                    }
+                });
+            });
+
+            function showAlert(message, type) {
+                const alertHtml = `
+                    <div class="alert alert-${type} alert-dismissible fade show" role="alert">
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                `;
+                $('#alertContainer').html(alertHtml);
+                
+                setTimeout(() => {
+                    $('.alert').fadeOut();
+                }, 5000);
+            }
+        });
+    </script>
+} 

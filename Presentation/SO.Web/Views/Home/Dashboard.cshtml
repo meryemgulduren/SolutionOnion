@@ -1,0 +1,397 @@
+@* Kimlik doğrulaması yapılmış kullanıcılar için Dashboard sayfası *@
+@model SO.Application.DTOs.Dashboard.DashboardStatisticsDto
+
+@{
+    ViewData["Title"] = "Panel";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-tachometer-alt me-3 text-primary"></i>
+                    Panel
+                </h1>
+                <p class="page-subtitle lead mb-0">
+                    @ViewBag.WelcomeMessage - @if (ViewBag.IsAdmin == true) { <text>Yönetici görünümü - Tüm sistem verileri</text> } else { <text>Kişisel veri özetiniz</text> }
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                <a asp-controller="Proposals" asp-action="Create" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus me-2"></i>Yeni Teklif
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-primary text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-file-contract fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(Model?.TotalProposalsCount ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Toplam Teklif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-success text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(Model?.ActiveClientsCount ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Aktif Müşteriler</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-info text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(Model?.CompletedProjectsCount ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Tamamlanan</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-warning text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-clock fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(Model?.DraftProposalsCount ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Devam Eden</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Section -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2 text-warning"></i>
+                        Hızlı İşlemler
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-4">
+                        <div class="col-lg-4 col-md-6">
+                            <div class="quick-action-card text-center p-4 rounded hover-lift">
+                                <div class="action-icon mb-3">
+                                    <div class="icon-circle bg-primary text-white">
+                                        <i class="fas fa-plus fa-2x"></i>
+                                    </div>
+                                </div>
+                                <h4 class="action-title mb-3">Teklif Oluştur</h4>
+                                <p class="action-description text-muted mb-4">
+                                    Kapsamlı şablon sistemimizle yeni bir proje teklifi başlatın
+                                </p>
+                                <a asp-controller="Proposals" asp-action="Create" class="btn btn-primary btn-lg w-100">
+                                    <i class="fas fa-plus me-2"></i>Hemen Oluştur
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6">
+                            <div class="quick-action-card text-center p-4 rounded hover-lift">
+                                <div class="action-icon mb-3">
+                                    <div class="icon-circle bg-success text-white">
+                                        <i class="fas fa-list-alt fa-2x"></i>
+                                    </div>
+                                </div>
+                                <h4 class="action-title mb-3">Teklifleri Yönet</h4>
+                                <p class="action-description text-muted mb-4">
+                                    Tüm proje tekliflerinizi tek yerde görüntüleyin, düzenleyin ve takip edin
+                                </p>
+                                <a asp-controller="Proposals" asp-action="Index" class="btn btn-success btn-lg w-100">
+                                    <i class="fas fa-eye me-2"></i>Tümünü Görüntüle
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="col-lg-4 col-md-6">
+                            <div class="quick-action-card text-center p-4 rounded hover-lift">
+                                <div class="action-icon mb-3">
+                                    <div class="icon-circle bg-info text-white">
+                                        <i class="fas fa-users fa-2x"></i>
+                                    </div>
+                                </div>
+                                <h4 class="action-title mb-3">Müşteri Yönetimi</h4>
+                                <p class="action-description text-muted mb-4">
+                                    Daha iyi teklif takibi için müşteri bilgilerini ekleyin ve yönetin
+                                </p>
+                                <a asp-controller="Accounts" asp-action="Index" class="btn btn-info btn-lg w-100">
+                                    <i class="fas fa-user-cog me-2"></i>Müşterileri Yönet
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity & Quick Stats -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-chart-line me-2 text-success"></i>
+                        Son Aktiviteler
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="activity-timeline">
+                        @if (Model?.BusinessActivities != null && Model.BusinessActivities.Any())
+                        {
+                            <!-- İlk 3 aktiviteyi göster -->
+                            <div id="initialActivities">
+                                @foreach (var activity in Model.BusinessActivities.Take(3))
+                                {
+                                    <div class="activity-item d-flex align-items-start mb-4">
+                                        <div class="activity-icon me-3">
+                                            <div class="icon-circle @activity.IconColor text-white">
+                                                <i class="@activity.IconClass"></i>
+                                            </div>
+                                        </div>
+                                        <div class="activity-content">
+                                            <h6 class="activity-title mb-1">@activity.Title</h6>
+                                            <p class="activity-description text-muted mb-1">@activity.Description</p>
+                                            <small class="text-muted">@activity.TimeAgo</small>
+                                            @if (!string.IsNullOrEmpty(activity.ActivityType) && activity.ActivityType != "System")
+                                            {
+                                                <br/>
+                                                <small class="text-info">
+                                                    <i class="fas fa-tag me-1"></i>@activity.ActivityType
+                                                    @if (!string.IsNullOrEmpty(activity.Status))
+                                                    {
+                                                        <span class="ms-2">| <i class="fas fa-info-circle me-1"></i>@activity.Status</span>
+                                                    }
+                                                    @if (!string.IsNullOrEmpty(activity.UserName))
+                                                    {
+                                                        <span class="ms-2">| <i class="fas fa-user me-1"></i>@activity.UserName</span>
+                                                    }
+                                                </small>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <!-- Gizli aktiviteler -->
+                            @if (Model.BusinessActivities.Count > 3)
+                            {
+                                <div id="hiddenActivities" style="display: none;">
+                                    @foreach (var activity in Model.BusinessActivities.Skip(3))
+                                    {
+                                        <div class="activity-item d-flex align-items-start mb-4">
+                                            <div class="activity-icon me-3">
+                                                <div class="icon-circle @activity.IconColor text-white">
+                                                    <i class="@activity.IconClass"></i>
+                                                </div>
+                                            </div>
+                                            <div class="activity-content">
+                                                <h6 class="activity-title mb-1">@activity.Title</h6>
+                                                <p class="activity-description text-muted mb-1">@activity.Description</p>
+                                                <small class="text-muted">@activity.TimeAgo</small>
+                                                @if (!string.IsNullOrEmpty(activity.ActivityType) && activity.ActivityType != "System")
+                                                {
+                                                    <br/>
+                                                    <small class="text-info">
+                                                        <i class="fas fa-tag me-1"></i>@activity.ActivityType
+                                                        @if (!string.IsNullOrEmpty(activity.Status))
+                                                        {
+                                                            <span class="ms-2">| <i class="fas fa-info-circle me-1"></i>@activity.Status</span>
+                                                        }
+                                                        @if (!string.IsNullOrEmpty(activity.UserName))
+                                                        {
+                                                            <span class="ms-2">| <i class="fas fa-user me-1"></i>@activity.UserName</span>
+                                                        }
+                                                    </small>
+                                                }
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+
+                                <!-- Daha fazla göster butonu -->
+                                <div class="text-center mt-3">
+                                    <button class="btn btn-outline-primary btn-sm" id="showMoreBtn" onclick="toggleActivities()">
+                                        <i class="fas fa-chevron-down me-1"></i>Daha fazla göster (@(Model.BusinessActivities.Count - 3) aktivite)
+                                    </button>
+                                </div>
+                            }
+                        }
+                        else
+                        {
+                            <div class="text-center py-4">
+                                <i class="fas fa-info-circle text-muted mb-3" style="font-size: 3rem;"></i>
+                                <p class="text-muted mb-0">Çalışmaya başlayın ve son aktivitelerinizi burada görün</p>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        <i class="fas fa-tasks me-2 text-warning"></i>
+                        Performans Özeti
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="quick-stats">
+                        <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+                            <span class="stat-label">Bu Ay</span>
+                            <span class="stat-value text-primary fw-bold">@(Model?.TotalProposalsCount ?? 0)</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+                            <span class="stat-label">İncelemede</span>
+                            <span class="stat-value text-warning fw-bold">@(Model?.DraftProposalsCount ?? 0)</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between align-items-center mb-3">
+                            <span class="stat-label">Aktif Müşteriler</span>
+                            <span class="stat-value text-success fw-bold">@(Model?.ActiveClientsCount ?? 0)</span>
+                        </div>
+                        <div class="stat-item d-flex justify-content-between align-items-center">
+                            <span class="stat-label">Tamamlanan</span>
+                            <span class="stat-value text-info fw-bold">@(Model?.CompletedProjectsCount ?? 0)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Styles {
+    <style>
+        .activity-icon .icon-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+        }
+        
+
+        
+        .bg-primary {
+            background-color: #0d6efd !important;
+        }
+        
+        .bg-success {
+            background-color: #198754 !important;
+        }
+        
+        .bg-warning {
+            background-color: #ffc107 !important;
+        }
+        
+        .bg-info {
+            background-color: #0dcaf0 !important;
+        }
+        
+        .bg-danger {
+            background-color: #dc3545 !important;
+        }
+    </style>
+}
+
+@section Scripts {
+    <script>
+        // Animate dashboard elements
+        document.addEventListener("DOMContentLoaded", function () {
+            const statCards = document.querySelectorAll('.stat-card');
+            const actionCards = document.querySelectorAll('.quick-action-card');
+            
+            // Animate stat cards
+            statCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(30px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'translateY(0)';
+                }, index * 200);
+            });
+            
+            // Animate action cards
+            actionCards.forEach((card, index) => {
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.9)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                
+                setTimeout(() => {
+                    card.style.opacity = '1';
+                    card.style.transform = 'scale(1)';
+                }, (index * 200) + 800);
+            });
+            
+            // Animate activity items
+            const activityItems = document.querySelectorAll('.activity-item');
+            activityItems.forEach((item, index) => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(-20px)';
+                item.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                
+                setTimeout(() => {
+                    item.style.opacity = '1';
+                    item.style.transform = 'translateX(0)';
+                }, (index * 100) + 1600);
+            });
+        });
+        
+        // Toggle activities function
+        window.toggleActivities = function() {
+            const hiddenActivities = document.getElementById('hiddenActivities');
+            const showMoreBtn = document.getElementById('showMoreBtn');
+            
+            if (hiddenActivities.style.display === 'none') {
+                hiddenActivities.style.display = 'block';
+                showMoreBtn.innerHTML = '<i class="fas fa-chevron-up me-1"></i>Daha az göster';
+            } else {
+                hiddenActivities.style.display = 'none';
+                const remainingCount = @(Model?.BusinessActivities?.Count - 3 ?? 0);
+                showMoreBtn.innerHTML = '<i class="fas fa-chevron-down me-1"></i>Daha fazla göster (' + remainingCount + ' aktivite)';
+            }
+        }
+    </script>
+}

@@ -14,7 +14,7 @@ namespace SO.Application.Abstractions.Services.AccountModule
         Task CreateAddressAsync(CreateAddress createAddress);
         Task UpdateAddressAsync(UpdateAddress updateAddress);
         Task DeleteAddressAsync(string id);
-        Task<List<Address>> GetAllAddressesAsync();
+        Task<List<ListAddress>> GetAllAddressesAsync();
         Task<SingleAddress> GetAddressByIdAsync(string id);
     }
 }

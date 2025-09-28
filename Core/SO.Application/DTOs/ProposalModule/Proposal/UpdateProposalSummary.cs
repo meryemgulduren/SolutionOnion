@@ -14,7 +14,18 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
     {
         public string ProposalId { get; set; }
         public string? ProjectDescription { get; set; }
-        public string? StatementOfNeed { get; set; }
-        public List<CreateBusinessObjective> BusinessObjectives { get; set; } = new();
+        public int? OfferDurationDays { get; set; }
+        public int? DeliveryDurationDays { get; set; }
+        public string? OfferOwner { get; set; }
+        public decimal? QuantityValue { get; set; }
+        public string? QuantityUnit { get; set; }
+        public string? GeneralNote { get; set; }
+        public string? AddressId { get; set; }
+        // Ticari
+        public decimal? TargetPrice { get; set; }
+        public string? PaymentMethod { get; set; }
+        public string? PaymentTerm { get; set; }
+        public string? CommercialNote { get; set; }
+        public DateTime? ValidUntilDate { get; set; }
     }
 }

@@ -1,0 +1,378 @@
+@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "User Management - SuperAdmin";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-user-cog text-primary me-2"></i>
+                User Management
+            </h1>
+            <p class="mb-0 text-muted">Manage all system users and their roles</p>
+        </div>
+        <div>
+            <button type="button" class="btn btn-success" onclick="refreshUsers()">
+                <i class="fas fa-sync-alt me-2"></i>Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Users Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-users me-2"></i>User List
+                <span class="badge bg-primary ms-2" id="userCount">@(((IEnumerable<dynamic>)Model).Count()) Users</span>
+            </h6>
+        </div>
+                <div class="card-body">
+                    <!-- CSRF Token -->
+                    @Html.AntiForgeryToken()
+                    
+                    <!-- TempData Mesajları -->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                        <div class="alert alert-success alert-dismissible fade show">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            @TempData["SuccessMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    @if (TempData["ErrorMessage"] != null)
+                    {
+                        <div class="alert alert-danger alert-dismissible fade show">
+                            <i class="fas fa-exclamation-circle mr-2"></i>
+                            @TempData["ErrorMessage"]
+                            <button type="button" class="close" data-dismiss="alert">
+                                <span>&times;</span>
+                            </button>
+                        </div>
+                    }
+                    
+                    <!-- Warning Messages -->
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning:</strong> User deletion cannot be undone. Remember that at least one SuperAdmin must remain in the system when deleting SuperAdmin users.
+                    </div>
+                    
+                    @if (Model != null && ((IEnumerable<dynamic>)Model).Any())
+                    {
+                        <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
+                            <table class="table table-hover mb-0" id="usersTable" style="position: relative; min-width: 1000px;">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th><i class="fas fa-user me-2"></i>Username</th>
+                                        <th><i class="fas fa-envelope me-2"></i>Email</th>
+                                        <th><i class="fas fa-id-card me-2"></i>Full Name</th>
+                                        <th><i class="fas fa-user-tag me-2"></i>Roles</th>
+                                        <th><i class="fas fa-calendar me-2"></i>Registration Date</th>
+                                        <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                        <th class="text-center" style="width: 250px; min-width: 250px;"><i class="fas fa-cogs me-2"></i>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var user in (IEnumerable<dynamic>)Model)
+                                    {
+                                        <tr>
+                                            <td>@user.UserName</td>
+                                            <td>@user.Email</td>
+                                            <td>@user.FullName</td>
+                                            <td>
+                                                <span class="badge badge-@(user.Roles.Contains("SuperAdmin") ? "danger" : 
+                                                                        user.Roles.Contains("Admin") ? "warning" : 
+                                                                        user.Roles.Contains("Manager") ? "info" : "primary")">
+                                                    @user.Roles
+                                                </span>
+                                            </td>
+                                            <td>@user.CreatedDate.ToString("dd.MM.yyyy")</td>
+                                            <td>
+                                                <span class="badge bg-@(user.IsActive ? "success" : "danger")">
+                                                    @(user.IsActive ? "Active" : "Inactive")
+                                                </span>
+                                            </td>
+                                            <td style="position: relative; z-index: 10; width: 250px; min-width: 250px;">
+                                                <div class="btn-group" role="group" style="position: relative; z-index: 1000;">
+                                                    <!-- Change Role Dropdown -->
+                                                    <div class="dropdown">
+                                                        <button type="button" class="btn btn-sm btn-warning dropdown-toggle" 
+                                                                data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                                            <i class="fas fa-user-cog"></i> Change Role
+                                                        </button>
+                                                        <ul class="dropdown-menu" style="position: absolute; top: 100%; left: 0; z-index: 9999; min-width: 200px;">
+                                                            <li><a class="dropdown-item" href="#" onclick="changeUserRole('@user.Id', 'User')">
+                                                                <i class="fas fa-user text-primary"></i> Make User
+                                                            </a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="changeUserRole('@user.Id', 'Manager')">
+                                                                <i class="fas fa-user-tie text-info"></i> Make Manager
+                                                            </a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="changeUserRole('@user.Id', 'Admin')">
+                                                                <i class="fas fa-user-shield text-warning"></i> Make Admin
+                                                            </a></li>
+                                                            <li><a class="dropdown-item" href="#" onclick="changeUserRole('@user.Id', 'SuperAdmin')">
+                                                                <i class="fas fa-crown text-danger"></i> Make SuperAdmin
+                                                            </a></li>
+                                                        </ul>
+                                                    </div>
+                                                    
+                                                    <!-- Toggle Status Button -->
+                                                    <button type="button" class="btn btn-sm btn-@(user.IsActive ? "danger" : "success")" 
+                                                            onclick="toggleUserStatus('@user.Id')" 
+                                                            title="@(user.IsActive ? "Deactivate" : "Activate")">
+                                                        <i class="fas fa-@(user.IsActive ? "ban" : "check")"></i>
+                                                    </button>
+                                                    
+                                                    <!-- Delete Button -->
+                                                    <button type="button" class="btn btn-sm btn-danger" 
+                                                            onclick="deleteUser('@user.Id', '@user.UserName')" 
+                                                            title="Delete User">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            No users found yet.
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CSRF Token -->
+@Html.AntiForgeryToken()
+
+@section Scripts {
+    <script>
+        $(document).ready(function() {
+            $('#usersTable').DataTable({
+                "language": {
+                    "url": "//cdn.datatables.net/plug-ins/1.10.24/i18n/English.json"
+                },
+                "pageLength": 25,
+                "order": [[4, "desc"]]
+            });
+        });
+
+        function refreshUsers() {
+            location.reload();
+        }
+
+        function changeUserRole(userId, newRole) {
+            if (confirm('Are you sure you want to change the user role to ' + newRole + '?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("ChangeUserRole", "SuperAdmin")';
+                
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+                
+                var userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.name = 'userId';
+                userIdInput.value = userId;
+                form.appendChild(userIdInput);
+                
+                var roleInput = document.createElement('input');
+                roleInput.type = 'hidden';
+                roleInput.name = 'newRole';
+                roleInput.value = newRole;
+                form.appendChild(roleInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function toggleUserStatus(userId) {
+            if (confirm('Are you sure you want to change the user status?')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("ToggleUserStatus", "SuperAdmin")';
+                
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+                
+                var userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.name = 'userId';
+                userIdInput.value = userId;
+                form.appendChild(userIdInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+
+        function deleteUser(userId, userName) {
+            if (confirm('Are you sure you want to permanently delete user ' + userName + ' from the system?\\n\\nThis action cannot be undone!')) {
+                var form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '@Url.Action("DeleteUser", "SuperAdmin")';
+                
+                var token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+                var tokenInput = document.createElement('input');
+                tokenInput.type = 'hidden';
+                tokenInput.name = '__RequestVerificationToken';
+                tokenInput.value = token;
+                form.appendChild(tokenInput);
+                
+                var userIdInput = document.createElement('input');
+                userIdInput.type = 'hidden';
+                userIdInput.name = 'userId';
+                userIdInput.value = userId;
+                form.appendChild(userIdInput);
+                
+                document.body.appendChild(form);
+                form.submit();
+            }
+        }
+    </script>
+}
+
+@section Styles {
+    <style>
+        .table th {
+            background-color: #f8f9fc;
+            border-top: none;
+            font-weight: 600;
+        }
+        
+        .btn-group .btn {
+            margin-right: 2px;
+        }
+        
+        .dropdown-menu {
+            min-width: 200px;
+            box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(0, 0, 0, 0.15);
+            z-index: 9999 !important;
+            position: absolute !important;
+            top: 100% !important;
+            left: 0 !important;
+        }
+        
+        .dropdown {
+            position: relative !important;
+            z-index: 1000 !important;
+        }
+        
+        .table td {
+            position: relative;
+            z-index: 1;
+            overflow: visible !important;
+        }
+        
+        .table td .dropdown {
+            z-index: 1000 !important;
+            position: relative !important;
+        }
+        
+        .table-responsive {
+            overflow-x: auto !important;
+            overflow-y: visible !important;
+        }
+        
+        .table {
+            overflow: visible !important;
+        }
+        
+        .dropdown-item {
+            padding: 8px 16px;
+            border: none;
+            background: none;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            display: block;
+            color: #212529;
+            text-decoration: none;
+        }
+        
+        .dropdown-item:hover {
+            background-color: #f8f9fa;
+            color: #16181b;
+        }
+        
+        .dropdown-item:focus {
+            background-color: #f8f9fa;
+            color: #16181b;
+        }
+        
+        .badge {
+            font-size: 0.75em;
+        }
+        
+        .hover-lift:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .card-header h6 {
+            color: white !important;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+        }
+        
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #56ab2f 0%, #a8e6cf 100%);
+            border: none;
+        }
+        
+        .btn-success:hover {
+            background: linear-gradient(135deg, #4a9a1f 0%, #96d4b7 100%);
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background: linear-gradient(135deg, #bdc3c7 0%, #2c3e50 100%);
+            border: none;
+        }
+        
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #a6acaf 0%, #1a252f 100%);
+            transform: translateY(-1px);
+        }
+    </style>
+}

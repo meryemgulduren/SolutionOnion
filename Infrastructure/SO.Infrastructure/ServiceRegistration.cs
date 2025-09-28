@@ -1,6 +1,6 @@
 ﻿using SO.Application.Abstractions.Services;
 using SO.Application.Abstractions.Storage;
-using SO.Infrastructure.Enums;
+using SO.Domain.Enums;
 using SO.Infrastructure.Services.Storage;
 using SO.Infrastructure.Services;
 using Microsoft.Extensions.DependencyInjection;
@@ -17,8 +17,9 @@ namespace SO.Infrastructure
     {
         public static void AddInfrastructureServices(this IServiceCollection serviceCollection)
         {
-
             serviceCollection.AddScoped<IStorageService, StorageService>();
+            serviceCollection.AddScoped<IAuthorizationService, AuthorizationService>();
+            serviceCollection.AddStorage(StorageType.Local); // Local storage'ı ekledik
         }
 
         public static void AddStorage<T>(this IServiceCollection serviceCollection) where T : Storage, IStorage

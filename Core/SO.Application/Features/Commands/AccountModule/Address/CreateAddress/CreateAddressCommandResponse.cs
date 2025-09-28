@@ -8,5 +8,6 @@ namespace SO.Application.Features.Commands.AccountModule.Address.CreateAddress
 {
     public class CreateAddressCommandResponse
     {
+        public bool Succeeded { get; set; } = true;
     }
 }

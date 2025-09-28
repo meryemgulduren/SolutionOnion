@@ -1,0 +1,160 @@
+@* Yönetici Paneli - Tüm sistem verilerini gösterir *@
+@{
+    ViewData["Title"] = "Yönetici Paneli";
+}
+
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="row align-items-center">
+            <div class="col-12">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-cog me-3 text-warning"></i>
+                    Yönetici Paneli
+                </h1>
+                <p class="page-subtitle lead mb-0">
+                    Sistem geneli görünüm - Tüm teklifler, müşteriler ve adresler
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-5 justify-content-center">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-danger text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-file-contract fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(ViewBag.TotalProposals ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Toplam Teklif</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-warning text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(ViewBag.TotalAccounts ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Toplam Müşteri</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card bg-gradient-info text-white hover-lift">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="stat-icon me-3">
+                            <i class="fas fa-map-marker-alt fa-2x"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 class="stat-number mb-1">@(ViewBag.TotalAddresses ?? 0)</h3>
+                            <p class="stat-label mb-0 opacity-75">Toplam Adres</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row g-4 mb-5">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">
+                        <i class="fas fa-bolt me-2"></i>Hızlı İşlemler
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3 justify-content-center">
+                        <div class="col-md-3">
+                            <a asp-controller="Admin" asp-action="Proposals" class="btn btn-outline-primary w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-file-contract fa-2x mb-2"></i>
+                                <span>Tüm Teklifleri Görüntüle</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Admin" asp-action="Accounts" class="btn btn-outline-success w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-users fa-2x mb-2"></i>
+                                <span>Tüm Müşterileri Görüntüle</span>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a asp-controller="Admin" asp-action="Addresses" class="btn btn-outline-info w-100 h-100 d-flex flex-column align-items-center justify-content-center py-4">
+                                <i class="fas fa-map-marker-alt fa-2x mb-2"></i>
+                                <span>Tüm Adresleri Görüntüle</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Notice -->
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info" role="alert">
+                <h4 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Yönetici Paneli
+                </h4>
+                <p class="mb-0">
+                    Tüm sistem verilerine erişim ile yönetici paneline bakıyorsunuz. 
+                    Tüm sistemdeki teklifleri, müşterileri ve adresleri yönetmek için yukarıdaki hızlı işlemleri kullanın.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+@section Styles {
+    <style>
+        .stat-card {
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+        
+        .page-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            border-radius: 15px;
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @@keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+}

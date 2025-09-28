@@ -9,6 +9,7 @@ namespace SO.Application
         {
             collection.AddMediatR(typeof(ServiceRegistration));
             collection.AddHttpClient();
+            collection.AddHttpContextAccessor();
         }
     }
 }

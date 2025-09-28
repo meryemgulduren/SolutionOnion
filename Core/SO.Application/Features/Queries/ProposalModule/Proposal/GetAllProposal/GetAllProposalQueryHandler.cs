@@ -22,8 +22,10 @@ namespace SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal
 
         public async Task<GetAllProposalQueryResponse> Handle(GetAllProposalQueryRequest request, CancellationToken cancellationToken)
         {
-            var proposals = await _proposalService.GetAllProposalsAsync();
-            return new() { Result = proposals };
+            // Service'e kullanıcı bilgilerini gönder, filtreleme veritabanı seviyesinde yapılsın
+            var proposals = await _proposalService.GetAllProposalsAsync(request.CurrentUserId, request.IsAdmin);
+            
+            return new() { Result = proposals ?? new List<SO.Application.DTOs.ProposalModule.Proposal.ListProposal>() };
         }
     }
 }

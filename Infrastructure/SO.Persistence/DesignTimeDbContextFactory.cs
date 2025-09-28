@@ -17,7 +17,7 @@ namespace SO.Persistence
             
             DbContextOptionsBuilder<SODbContext> dbContextOptionsBuilder = new ();
             dbContextOptionsBuilder.UseMySQL(Configuration.ConnectionString);
-                return new(dbContextOptionsBuilder.Options);
+                return new(dbContextOptionsBuilder.Options, null);
         }
     }
 }

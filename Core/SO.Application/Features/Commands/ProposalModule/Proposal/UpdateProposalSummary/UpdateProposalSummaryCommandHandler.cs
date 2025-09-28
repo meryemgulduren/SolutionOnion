@@ -29,8 +29,19 @@ namespace SO.Application.Features.Commands.ProposalModule.Proposal.UpdateProposa
             {
                 ProposalId = request.Id,
                 ProjectDescription = request.ProjectDescription,
-                StatementOfNeed = request.StatementOfNeed,
-                BusinessObjectives = request.BusinessObjectives
+                // request'te kaldırılan alanlar silindi
+                OfferDurationDays = request.OfferDurationDays,
+                DeliveryDurationDays = request.DeliveryDurationDays,
+                OfferOwner = request.OfferOwner,
+                QuantityValue = request.QuantityValue,
+                QuantityUnit = request.QuantityUnit,
+                GeneralNote = request.GeneralNote,
+                AddressId = request.AddressId,
+                TargetPrice = request.TargetPrice,
+                PaymentMethod = request.PaymentMethod,
+                PaymentTerm = request.PaymentTerm,
+                ValidUntilDate = request.ValidUntilDate,
+                CommercialNote = request.CommercialNote
             });
 
             // İşlem tamamlandığında boş bir cevap döndürüyoruz.

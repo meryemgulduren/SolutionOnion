@@ -1,0 +1,65 @@
+@{
+    ViewData["Title"] = "Email Verification";
+}
+
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body text-center p-5">
+                    @if (ViewBag.EmailConfirmed == true)
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                        </div>
+                        
+                        <h2 class="card-title mb-4 text-success">Email Verified!</h2>
+                        
+                        <p class="card-text text-muted mb-4">
+                            Your account has been successfully activated. You can now sign in to the system.
+                        </p>
+                        
+                        <div class="alert alert-success" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Congratulations!</strong> Your email address has been verified and your account is active.
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a asp-controller="Account" asp-action="Login" class="btn btn-success btn-lg">
+                                <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                            </a>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="mb-4">
+                            <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
+                        </div>
+                        
+                        <h2 class="card-title mb-4 text-danger">Email Verification Failed!</h2>
+                        
+                        <p class="card-text text-muted mb-4">
+                            Email verification process failed. Please try again.
+                        </p>
+                        
+                        <div class="alert alert-danger" role="alert">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Error:</strong> The verification link may be invalid or expired.
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a asp-controller="Account" asp-action="ResendConfirmation" class="btn btn-primary me-2">
+                                <i class="fas fa-redo me-2"></i>Resend
+                            </a>
+                            <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">
+                                <i class="fas fa-home me-2"></i>Home
+                            </a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+

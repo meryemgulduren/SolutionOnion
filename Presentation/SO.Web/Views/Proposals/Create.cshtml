@@ -1,42 +1,234 @@
 ﻿@model SO.Application.Features.Commands.ProposalModule.Proposal.CreateProposal.CreateProposalCommandRequest
 
 @{
-    ViewData["Title"] = "Yeni Teklif Başlat";
+    ViewData["Title"] = "Yeni Teklif Oluştur";
 }
 
-<h1>Yeni Teklif Başlat</h1>
-<p>Lütfen teklifi oluşturmak istediğiniz müşteriyi seçin ve teklife bir isim verin.</p>
-<hr />
-<div class="row">
-    <div class="col-md-6">
-        <form asp-action="Create" method="post">
-            @* DÜZELTME: Olası tüm hataları bir özet olarak en üstte gösterir. *@
-            <div asp-validation-summary="All" class="text-danger"></div>
+<div class="container-fluid">
+    <!-- Creation Form -->
+    <div class="row justify-content-center min-vh-100 align-items-center">
+        <div class="col-md-8 col-lg-6 col-xl-5">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title mb-0">
+                        Teklif Bilgileri
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <form asp-action="Create" method="post" id="createProposalForm">
 
-            <div class="form-group mb-3">
-                <label asp-for="AccountId" class="control-label">Müşteri</label>
-                <select asp-for="AccountId" class="form-control" asp-items="ViewBag.Accounts">
-                    <option value="">-- Müşteri Seçiniz --</option>
-                </select>
-                <span asp-validation-for="AccountId" class="text-danger"></span>
-            </div>
-            <div class="form-group mb-3">
-                <label asp-for="ProposalName" class="control-label">Teklif Adı</label>
-                <input asp-for="ProposalName" class="form-control" />
-                <span asp-validation-for="ProposalName" class="text-danger"></span>
-            </div>
+                        <!-- Client Selection -->
+                        <div class="form-group mb-4">
+                            <label asp-for="AccountId" class="form-label fw-bold">
+                                Müşteri Seçin
+                            </label>
+                            <select asp-for="AccountId" class="form-select" asp-items="ViewBag.Accounts" required>
+                                <option value="">-- Müşteri seçin --</option>
+                            </select>
+                            <span asp-validation-for="AccountId" class="text-danger small"></span>
+                            
+                        </div>
 
-            @* YENİ EKLENEN ALAN *@
-            <div class="form-group mb-3">
-                <label asp-for="PreparedBy" class="control-label">Hazırlayan</label>
-                <input asp-for="PreparedBy" class="form-control" />
-                <span asp-validation-for="PreparedBy" class="text-danger"></span>
-            </div>
+                        <!-- Proposal Name -->
+                        <div class="form-group mb-4">
+                            <label asp-for="ProposalName" class="form-label fw-bold">
+                                Teklif Adı
+                            </label>
+                            <input asp-for="ProposalName" class="form-control" 
+                                   placeholder="Teklif için açıklayıcı bir ad girin..." required />
+                            <span asp-validation-for="ProposalName" class="text-danger small"></span>
+                            
+                        </div>
 
-            <div class="form-group mt-4">
-                <input type="submit" value="Teklifi Başlat ve Devam Et" class="btn btn-primary" />
+                        <!-- Prepared By -->
+                        <div class="form-group mb-4">
+                            <label asp-for="PreparedBy" class="form-label fw-bold">
+                                Hazırlayan
+                            </label>
+                            <input asp-for="PreparedBy" class="form-control" 
+                                   placeholder="Adınızı veya takım adınızı girin..." 
+                                   value="@ViewBag.CurrentUserName" required />
+                            <span asp-validation-for="PreparedBy" class="text-danger small"></span>
+                            
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-group mt-5">
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                                <a asp-action="Index" class="btn btn-outline-secondary me-md-2">
+                                    İptal
+                                </a>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    Teklif Oluştur ve Devam Et
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
 </div>
+
+<style>
+    .form-control, .form-select { 
+        transition: all 0.3s ease;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 0.875rem 1rem;
+        font-size: 1rem;
+        background: #f9fafb;
+        background-image: none !important;
+    }
+    
+    .form-control:focus, .form-select:focus { 
+        border-color: #4a6fa5; 
+        box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.1);
+        background: white;
+        background-image: none !important;
+        outline: none;
+    }
+    
+    .form-control.is-valid, .form-select.is-valid {
+        background-image: none !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    .form-control.is-invalid, .form-select.is-invalid {
+        background-image: none !important;
+        border-color: #e5e7eb !important;
+    }
+    
+    .form-control:valid, .form-select:valid {
+        background-image: none !important;
+    }
+    
+    .form-control:invalid, .form-select:invalid {
+        background-image: none !important;
+    }
+    
+    .form-label {
+        font-size: 1rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: #374151;
+    }
+    
+    .form-text {
+        font-size: 0.875rem;
+        margin-top: 0.5rem;
+        color: #6b7280;
+    }
+    
+    .btn { 
+        font-weight: 600;
+        padding: 0.75rem 1.5rem;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-primary {
+        background: linear-gradient(135deg, #4a6fa5, #6b9bd2);
+        border: none;
+    }
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(74, 111, 165, 0.3);
+    }
+    
+    .btn-outline-secondary {
+        border: 2px solid #e5e7eb;
+        color: #6b7280;
+    }
+    
+    .btn-outline-secondary:hover {
+        background: #f9fafb;
+        border-color: #d1d5db;
+        color: #374151;
+    }
+    
+    .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+    
+    .card-header {
+        background: white;
+        border-bottom: 1px solid #f1f5f9;
+        border-radius: 20px 20px 0 0 !important;
+        padding: 1.5rem 2rem 1rem;
+    }
+    
+    .card-body {
+        padding: 2rem;
+    }
+    
+    .card-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #0B1426;
+        margin: 0;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .text-danger {
+        font-size: 0.875rem;
+        margin-top: 0.25rem;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const form = document.getElementById('createProposalForm');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            // Form validation and submission
+            form.addEventListener('submit', function (e) {
+                if (!form.checkValidity()) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                } else {
+                    // Show loading state
+                    submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Oluşturuluyor...';
+                    submitBtn.disabled = true;
+                }
+                form.classList.add('was-validated');
+            });
+            
+            // Real-time validation feedback
+            const inputs = form.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('blur', function () {
+                    if (this.checkValidity()) {
+                        this.classList.add('is-valid');
+                        this.classList.remove('is-invalid');
+                    } else {
+                        this.classList.add('is-invalid');
+                        this.classList.remove('is-valid');
+                    }
+                });
+            });
+            
+            // Auto-fill prepared by if empty
+            const preparedByInput = document.getElementById('PreparedBy');
+            if (!preparedByInput.value) {
+                preparedByInput.value = 'Admin User'; // Default value
+            }
+        });
+    </script>
+}
 

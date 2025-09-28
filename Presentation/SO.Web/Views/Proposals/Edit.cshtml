@@ -1,50 +1,336 @@
-﻿@using SO.Application.DTOs.ProposalModule.Proposal
-@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+﻿@using SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal
+@model GetByIdProposalQueryResponse
 
 @{
-    ViewData["Title"] = "Teklif Detayları";
-    var proposal = Model.Result as SingleProposal;
+    ViewData["Title"] = "Edit Proposal";
+    var proposal = Model.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal;
 }
 
 <div class="container-fluid">
-    <h1>Teklif Düzenle: <span class="text-primary">@proposal.ProposalName</span></h1>
-    <p>
-        <strong>Müşteri:</strong> @proposal.CompanyName |
-        <strong>Durum:</strong> <span class="badge bg-info text-dark">@proposal.Status</span>
-    </p>
+    <!-- Success Message -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">
+            <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    }
 
-    <hr />
-
-    <div class="row">
-        @* Sol Taraftaki Adım Menüsü *@
-        <div class="col-md-3">
-            <div class="list-group" id="proposal-steps">
-                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ProjectSummary" class="list-group-item list-group-item-action active" data-step="_ProjectSummary">
-                    Create Project Summary
-                </a>
-                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_InitiatorSponsor" class="list-group-item list-group-item-action" data-step="_InitiatorSponsor">
-                    Identify Project Initiator and/or Sponsor
-                </a>
-                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_CustomersAndDeliverables" class="list-group-item list-group-item-action" data-step="_CustomersAndDeliverables">
-                    Identify Customers and Final Deliverables
-                </a>
-                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ProjectApproach" class="list-group-item list-group-item-action" data-step="_ProjectApproach">
-                    Define Project Approach
-                </a>
-                <a asp-action="GetStepView" asp-route-proposalId="@proposal.Id" asp-route-stepName="_ResourceRequirements" class="list-group-item list-group-item-action" data-step="_ResourceRequirements">
-                    Identify Resource Requirements
-                </a>
-                @* Diğer adımlar da bu şekilde eklenecek *@
+    <!-- Modern Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h1 class="h3 mb-2 text-dark">Teklifi Düzenle</h1>
+                            <h2 class="h5 text-primary mb-3">@proposal.ProposalName</h2>
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="badge bg-light text-dark border">
+                                    <i class="fas fa-building me-1"></i>@proposal.CompanyName
+                                </span>
+                                <span class="badge bg-info text-white">
+                                    <i class="fas fa-info-circle me-1"></i>@proposal.Status
+                                </span>
+                            </div>
+                        </div>
+                        <div>
+                            <a asp-action="ExportToWord" asp-route-id="@proposal.Id" class="btn btn-success btn-lg px-4">
+                                <i class="fas fa-file-word me-2"></i>Word Olarak İndir
+                            </a>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
+    </div>
 
-        @* Sağ Tarafta Adımların Formlarının Gösterileceği Alan *@
-        <div class="col-md-9">
-            <div id="step-content-container">
-                @* AJAX ile yüklenecek içerik buraya gelecek *@
-                <div class="text-center">
-                    <div class="spinner-border" role="status">
-                        <span class="visually-hidden">Loading...</span>
+    <!-- Modern Form Layout -->
+    <div class="row">
+        <div class="col-12">
+            <div class="accordion" id="proposalAccordion">
+                <!-- 1. Genel Tanım -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header" id="headingGeneral">
+                        <button class="accordion-button collapsed bg-white text-dark border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneral" aria-expanded="false" aria-controls="collapseGeneral">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-primary me-3 px-3 py-2" id="badgeGeneral">1</span>
+                                <div>
+                                    <h5 class="mb-0">Genel Tanım</h5>
+                                    <small class="text-muted">Proje bilgileri ve müşteri detayları</small>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                        <div id="collapseGeneral" class="accordion-collapse collapse" aria-labelledby="headingGeneral" data-bs-parent="#proposalAccordion">
+                        <div class="accordion-body bg-light">
+                            <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post" id="generalForm">
+                                @Html.AntiForgeryToken()
+                                
+                                <!-- Proje Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-project-diagram me-2"></i>Proje Bilgileri</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <!-- 1.1 Firma Adı -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Firma Adı</label>
+                                                <input class="form-control" value="@proposal.CompanyName" readonly />
+                                            </div>
+                                            <!-- 1.2 Proje Adı -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Proje Adı</label>
+                                                <input name="ProposalName" class="form-control" value="@proposal.ProposalName" />
+                                            </div>
+                                            <!-- 1.3 Proje Kapsamı -->
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Proje Kapsamı <span class="text-danger">*</span></label>
+                                                <textarea name="ProjectDescription" class="form-control" rows="4" required placeholder="Proje kapsamını detaylı olarak açıklayın...">@proposal.ProjectDescription</textarea>
+                                            </div>
+                                            <!-- 1.4 Proje Sorumlusu (Hazırlayan) -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Proje Sorumlusu</label>
+                                                <input class="form-control" value="@proposal.PreparedBy" readonly />
+                                            </div>
+                                            <!-- 1.6 Kullanıcı Adı -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Kullanıcı Adı</label>
+                                                <input class="form-control" value="@User?.Identity?.Name" readonly />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Müşteri Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-success text-white">
+                                        <h6 class="mb-0"><i class="fas fa-building me-2"></i>Müşteri Bilgileri</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <!-- 1.5 Müşteri Adı -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Müşteri Adı</label>
+                                                <input id="customerName" name="CustomerName" class="form-control" value="@proposal.CustomerName" readonly />
+                                            </div>
+                                            <!-- 1.7 İletişim No -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">İletişim Numarası</label>
+                                                <input id="customerPhone" name="CustomerPhone" class="form-control" value="@proposal.CustomerPhone" readonly />
+                                            </div>
+                                            <!-- 1.10 Mail -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">E-posta Adresi</label>
+                                                <input id="customerEmail" name="CustomerEmail" type="email" class="form-control" value="@proposal.CustomerEmail" readonly />
+                                            </div>
+                                            <!-- 1.8 Faks -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Faks Numarası</label>
+                                                <input id="customerFax" name="CustomerFax" class="form-control" value="@proposal.CustomerFax" readonly />
+                                            </div>
+                                            <!-- 1.9 Adres -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Adres</label>
+                                                <input id="customerAddress" name="CustomerAddress" class="form-control" value="@proposal.CustomerAddress" readonly />
+                                                <input type="hidden" id="addressId" name="AddressId" value="@proposal.AddressId" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Proje Detayları -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-warning text-dark">
+                                        <h6 class="mb-0"><i class="fas fa-cogs me-2"></i>Proje Detayları</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <!-- 1.11 Teklif Süresi -->
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Teklif Süresi (gün) <span class="text-danger">*</span></label>
+                                                <input name="OfferDurationDays" type="text" class="form-control" value="@proposal.OfferDurationDays" placeholder="Gün sayısı (örn: 30)" required />
+                                            </div>
+                                            <!-- 1.12 Teslim Süresi -->
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Teslim Süresi (gün) <span class="text-danger">*</span></label>
+                                                <input name="DeliveryDurationDays" type="text" class="form-control" value="@proposal.DeliveryDurationDays" placeholder="Gün sayısı (örn: 60)" required />
+                                            </div>
+                                            <!-- 1.13 Teklif Sorumlusu -->
+                                            <div class="col-md-4">
+                                                <label class="form-label fw-bold">Teklif Sorumlusu <span class="text-danger">*</span></label>
+                                                <input name="OfferOwner" class="form-control" value="@proposal.OfferOwner" placeholder="Sorumlu kişi" required />
+                                            </div>
+                                            <!-- 1.14 Miktar (Birim/Adet) -->
+                                            <div class="col-md-8">
+                                                <label class="form-label fw-bold">Miktar <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <input name="QuantityValue" type="text" class="form-control" value="@proposal.QuantityValue" placeholder="Miktar (örn: 100 veya 100.5)" required />
+                                                    <select id="quantityUnit" name="QuantityUnit" class="form-select" required>
+                                                        <option value="">Birim seçin</option>
+                                                        <option value="Birim">Birim</option>
+                                                        <option value="Adet">Adet</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <!-- 1.15 Not -->
+                                            <div class="col-12">
+                                                <label class="form-label fw-bold">Not</label>
+                                                <textarea name="GeneralNote" class="form-control" rows="3" placeholder="Ek notlar...">@proposal.GeneralNote</textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-white rounded shadow-sm">
+                                    <div class="text-muted">
+                                        <small><i class="fas fa-info-circle me-1"></i>Bilgileriniz otomatik olarak kaydedilecek ve bir sonraki adıma geçilecektir.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-primary btn-lg px-4">
+                                        <i class="fas fa-save me-2"></i>Kaydet ve Devam Et
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Ticari -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header" id="headingCommercial">
+                        <button class="accordion-button collapsed bg-white text-dark border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCommercial" aria-expanded="false" aria-controls="collapseCommercial">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-success me-3 px-3 py-2" id="badgeCommercial">2</span>
+                                <div>
+                                    <h5 class="mb-0">Ticari Bilgiler</h5>
+                                    <small class="text-muted">Fiyat, ödeme ve rekabet bilgileri</small>
+                                </div>
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseCommercial" class="accordion-collapse collapse" aria-labelledby="headingCommercial" data-bs-parent="#proposalAccordion">
+                        <div class="accordion-body bg-light">
+                            <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post" id="commercialForm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="Id" value="@proposal.Id" />
+
+                                <!-- Fiyat ve Ödeme Bilgileri -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-primary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-dollar-sign me-2"></i>Fiyat ve Ödeme Bilgileri</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row g-3">
+                                            <!-- Hedef Fiyat -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Hedef Fiyat <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <input name="TargetPrice" type="text" class="form-control" value="@proposal.TargetPrice" placeholder="Fiyat girin (örn: 100000 veya 100.000)" required />
+                                                    <span class="input-group-text">@proposal.Currency</span>
+                                                </div>
+                                            </div>
+                                            <!-- Ödeme Metodu -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Ödeme Metodu <span class="text-danger">*</span></label>
+                                                <input name="PaymentMethod" class="form-control" placeholder="Ödeme yöntemi" value="@proposal.PaymentMethod" required />
+                                            </div>
+                                            <!-- Ödeme Vadesi -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Ödeme Vadesi <span class="text-danger">*</span></label>
+                                                <input name="PaymentTerm" class="form-control" placeholder="Ödeme süresi" value="@proposal.PaymentTerm" required />
+                                            </div>
+                                            <!-- Geçerlilik Tarihi -->
+                                            <div class="col-md-6">
+                                                <label class="form-label fw-bold">Geçerlilik Tarihi <span class="text-danger">*</span></label>
+                                                <input name="ValidUntilDate" type="date" class="form-control" value="@(proposal.ValidUntilDate?.ToString("yyyy-MM-dd"))" required />
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+                                <!-- Rekabet Edilen Firmalar Tablosu -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-info text-white">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0"><i class="fas fa-building me-2"></i>Rekabet Edilen Firmalar</h6>
+                                            <button type="button" class="btn btn-light btn-sm" id="addCompetitionCompanyBtn">
+                                                <i class="fas fa-plus me-1"></i>Firma Ekle
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="competitionCompaniesTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Firma Adı</th>
+                                                        <th>Rekabet Edilen Fiyat</th>
+                                                        <th>Notlar</th>
+                                                        <th width="100">İşlemler</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="competitionCompaniesBody">
+                                                    <!-- Dinamik olarak eklenecek -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- İş Ortakları Tablosu -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-warning text-dark">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <h6 class="mb-0"><i class="fas fa-handshake me-2"></i>İş Ortakları</h6>
+                                            <button type="button" class="btn btn-light btn-sm" id="addBusinessPartnerBtn">
+                                                <i class="fas fa-plus me-1"></i>Ortak Ekle
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="businessPartnersTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th>Ortak Adı</th>
+                                                        <th>Rolü</th>
+                                                        <th>İletişim Bilgisi</th>
+                                                        <th>Notlar</th>
+                                                        <th width="100">İşlemler</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="businessPartnersBody">
+                                                    <!-- Dinamik olarak eklenecek -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Notlar -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-secondary text-white">
+                                        <h6 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Notlar</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <textarea name="CommercialNote" class="form-control" rows="3" placeholder="Ticari notlarınızı buraya yazın...">@proposal.CommercialNote</textarea>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-white rounded shadow-sm">
+                                    <div class="text-muted">
+                                        <small><i class="fas fa-info-circle me-1"></i>Ticari bilgileriniz kaydedilecektir.</small>
+                                    </div>
+                                    <button type="submit" class="btn btn-success btn-lg px-4">
+                                        <i class="fas fa-save me-2"></i>Kaydet
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -52,41 +338,894 @@
     </div>
 </div>
 
-
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // Sayfa ilk yüklendiğinde, ilk adımı otomatik olarak yükle
-            loadStepContent($('#proposal-steps a.active'));
+            // İlk açılış: her iki panel kapalı, sadece Genel Tanım tıklanabilir ve yeşil görünsün
+            var urlParams = new URLSearchParams(window.location.search);
+            var open = urlParams.get('open');
+            if (open === 'commercial') {
+                $('#badgeCommercial').addClass('bg-success text-white');
+                $('#badgeGeneral').removeClass('bg-success text-white');
+            } else {
+                $('#badgeGeneral').addClass('bg-success text-white');
+                $('#badgeCommercial').removeClass('bg-success text-white');
+                // Ticari başlığını devre dışı bırak (sadece görsel/tıklanmasın)
+                $('#headingCommercial .accordion-button').addClass('disabled');
+            }
 
-            // Menüdeki bir adıma tıklandığında
-            $('#proposal-steps a').on('click', function (e) {
-                e.preventDefault(); // Linkin normal davranışını engelle
-
-                var clickedLink = $(this);
-
-                // Diğerlerinden 'active' class'ını kaldır, tıklanana ekle
-                $('#proposal-steps a').removeClass('active');
-                clickedLink.addClass('active');
-
-                loadStepContent(clickedLink);
-            });
-
-            function loadStepContent(linkElement) {
-                var url = linkElement.attr('href'); // Linkin href'inden URL'yi al
-                var container = $('#step-content-container');
-
-                // Yükleniyor animasyonunu göster
-                container.html('<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Loading...</span></div></div>');
-
-                // AJAX ile ilgili adımı yükle
-                $.get(url, function (data) {
-                    container.html(data);
-                }).fail(function() {
-                    container.html('<div class="alert alert-danger">İçerik yüklenirken bir hata oluştu.</div>');
+            // Firma seçildiğinde müşteri ve adres bilgilerini doldur
+            const accountId = '@proposal.AccountId';
+            if (accountId) {
+                // Müşteri temel bilgileri
+                $.get('/Accounts/GetById', { id: accountId }, function (a) {
+                    if (!a) return;
+                    $('#customerName').val(a.companyName || '');
+                    $('#customerPhone').val(a.phoneNumber || '');
+                    $('#customerEmail').val(a.email || '');
+                });
+                // Adres bilgisi (Line1) otomatik yazılsın
+                $.get('/Addresses/GetByAccount', { accountId: accountId }, function (list) {
+                    window.__addrCache = list || [];
+                    // Öncelik: AddressId -> varsayılan adres -> ilk adres
+                    var preferred = null;
+                    var currentId = '@(proposal.AddressId?.ToString() ?? "")';
+                    if (currentId) {
+                        preferred = (list || []).find(function(x){ return x.id === currentId; });
+                    }
+                    if (!preferred) {
+                        preferred = (list || []).find(function(x){ return x.isDefault; }) || (list || [])[0];
+                    }
+                    if (preferred) {
+                        $('#addressId').val(preferred.id);
+                        $('#customerAddress').val(preferred.addressLine1 || preferred.addressLine || '');
+                        $('#customerFax').val(preferred.fax || '');
+                    }
                 });
             }
+
+            // Mevcut veriler loadCommercialData() fonksiyonunda yükleniyor
+
+            // Artık dropdown yok; kullanıcıya otomatik gösteriliyor
+
+            // QuantityUnit değerini modelden set et
+            var unit = '@(proposal.QuantityUnit ?? "")';
+            if (unit) {
+                $('#quantityUnit').val(unit);
+            }
+
+
+            // Genel Tanım AJAX kaydet → sayfayı ticari adımı vurgulu olacak şekilde yenile
+            $('#generalForm').on('submit', function (e) {
+                e.preventDefault();
+                var form = $(this);
+                
+                // Form validation
+                var isValid = true;
+                var errorMessage = '';
+                
+                // Teklif Süresi kontrolü
+                var offerDuration = form.find('input[name="OfferDurationDays"]').val();
+                if (!offerDuration || offerDuration <= 0) {
+                    isValid = false;
+                    errorMessage += 'Teklif Süresi (gün) alanı zorunludur ve 0\'dan büyük olmalıdır.\n';
+                }
+                
+                // Teslim Süresi kontrolü
+                var deliveryDuration = form.find('input[name="DeliveryDurationDays"]').val();
+                if (!deliveryDuration || deliveryDuration <= 0) {
+                    isValid = false;
+                    errorMessage += 'Teslim Süresi (gün) alanı zorunludur ve 0\'dan büyük olmalıdır.\n';
+                }
+                
+                // Teklif Sorumlusu kontrolü
+                var offerOwner = form.find('input[name="OfferOwner"]').val();
+                if (!offerOwner || offerOwner.trim() === '') {
+                    isValid = false;
+                    errorMessage += 'Teklif Sorumlusu alanı zorunludur.\n';
+                }
+                
+                // Miktar kontrolü
+                var quantityValue = form.find('input[name="QuantityValue"]').val();
+                // Virgülü noktaya çevir
+                quantityValue = quantityValue.replace(',', '.');
+                if (!quantityValue || parseFloat(quantityValue) <= 0) {
+                    isValid = false;
+                    errorMessage += 'Miktar alanı zorunludur ve 0\'dan büyük olmalıdır.\n';
+                }
+                
+                // Birim kontrolü
+                var quantityUnit = form.find('select[name="QuantityUnit"]').val();
+                if (!quantityUnit || quantityUnit === '') {
+                    isValid = false;
+                    errorMessage += 'Birim seçimi zorunludur.\n';
+                }
+                
+                if (!isValid) {
+                    alert('Lütfen aşağıdaki hataları düzeltin:\n\n' + errorMessage);
+                    return false;
+                }
+                
+                
+                // Form'daki virgülleri noktaya çevir
+                form.find('input[type="number"]').each(function() {
+                    var $this = $(this);
+                    var value = $this.val();
+                    if (value && value.includes(',')) {
+                        $this.val(value.replace(',', '.'));
+                    }
+                });
+                
+                var data = form.serialize();
+                var btn = form.find('button[type="submit"]');
+                var original = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor');
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: data,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        btn.prop('disabled', false).html(original);
+                        // Yeniden yönlendir: ticari adımı vurgula, paneller kapalı kalsın
+                        var newUrl = window.location.pathname + '?id=@proposal.Id&open=commercial';
+                        window.location.href = newUrl;
+                    },
+                    error: function () {
+                        btn.prop('disabled', false).html(original);
+                        alert('Kaydetme sırasında bir hata oluştu.');
+                    }
+                });
+            });
+
+            // Ticari (2. adım) kaydet → AJAX ile gönder
+            $('#commercialForm').on('submit', function (e) {
+                e.preventDefault();
+                
+                // Ticari alanların zorunlu validasyonu
+                var isValid = true;
+                var errorMessage = '';
+
+                // Hedef Fiyat kontrolü
+                var targetPrice = $('input[name="TargetPrice"]').val();
+                // Virgülü noktaya çevir
+                targetPrice = targetPrice.replace(',', '.');
+                if (!targetPrice || parseFloat(targetPrice) <= 0) {
+                    isValid = false;
+                    errorMessage += 'Hedef Fiyat alanı zorunludur ve 0\'dan büyük olmalıdır.\n';
+                }
+
+                // Ödeme Metodu kontrolü
+                var paymentMethod = $('input[name="PaymentMethod"]').val();
+                if (!paymentMethod || paymentMethod.trim() === '') {
+                    isValid = false;
+                    errorMessage += 'Ödeme Metodu alanı zorunludur.\n';
+                }
+
+                // Ödeme Vadesi kontrolü
+                var paymentTerm = $('input[name="PaymentTerm"]').val();
+                if (!paymentTerm || paymentTerm.trim() === '') {
+                    isValid = false;
+                    errorMessage += 'Ödeme Vadesi alanı zorunludur.\n';
+                }
+
+                // Geçerlilik Tarihi kontrolü
+                var validUntilDate = $('input[name="ValidUntilDate"]').val();
+                if (!validUntilDate || validUntilDate.trim() === '') {
+                    isValid = false;
+                    errorMessage += 'Geçerlilik Tarihi alanı zorunludur.\n';
+                }
+
+                if (!isValid) {
+                    alert('Lütfen tüm zorunlu alanları doldurun:\n\n' + errorMessage);
+                    return false;
+                }
+
+                // Loading göster
+                var btn = $(this).find('button[type="submit"]');
+                var original = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor');
+                
+                
+                // Form'daki virgülleri noktaya çevir - sadece sayısal alanlar için
+                $('#commercialForm').find('input[name*="Price"], input[name*="Value"], input[name*="Days"]').each(function() {
+                    var $this = $(this);
+                    var value = $this.val();
+                    if (value && value.includes(',')) {
+                        $this.val(value.replace(',', '.'));
+                        console.log('Converted comma to dot:', value, '->', $this.val());
+                    }
+                });
+                
+                // forma 'from=commercial' bilgisi ekle; controller bu değeri redirect query olarak dönecek
+                if ($('#fromCommercialHidden').length === 0) {
+                    $('<input>').attr({ id: 'fromCommercialHidden', type: 'hidden', name: 'from', value: 'commercial' }).appendTo('#commercialForm');
+                }
+                
+                // AJAX ile form gönder
+                var form = $(this);
+                var data = form.serialize();
+                
+                // Debug: Form verilerini detaylı kontrol et
+                console.log('=== FORM SUBMIT DEBUG ===');
+                console.log('Form action:', form.attr('action'));
+                console.log('Serialized data:', data);
+                
+                // Form'daki tüm input'ları listele
+                form.find('input, textarea, select').each(function() {
+                    var $this = $(this);
+                    console.log('Form field:', $this.attr('name'), '=', $this.val());
+                });
+                
+                
+                $.ajax({
+                    url: form.attr('action'),
+                    type: 'POST',
+                    data: data,
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+                    success: function (res) {
+                        console.log('AJAX Success Response:', res);
+                        if (res.success) {
+                            // Ana form başarıyla kaydedildi, şimdi tablo verilerini kaydet
+                            console.log('Main form saved successfully, now saving table data...');
+                            saveTableData(btn, original);
+                        } else {
+                            btn.prop('disabled', false).html(original);
+                            alert('Kaydetme sırasında bir hata oluştu: ' + (res.message || 'Bilinmeyen hata'));
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        btn.prop('disabled', false).html(original);
+                        console.error('AJAX Error:', xhr.responseText);
+                        console.error('Status:', status);
+                        console.error('Error:', error);
+                        alert('Kaydetme sırasında bir hata oluştu: ' + error);
+                    }
+                });
+            });
+
+            // Tablo verilerini kaydeden fonksiyon
+            async function saveTableData(btn, original) {
+                try {
+                    console.log('Starting to save table data...');
+                    
+                    // Competition Companies verilerini topla ve kaydet
+                    await saveCompetitionCompaniesData();
+                    
+                    // Business Partners verilerini topla ve kaydet
+                    await saveBusinessPartnersData();
+                    
+                    // Başarılı mesaj göster
+                    btn.prop('disabled', false).html(original);
+                    showSuccessMessage('Tüm veriler başarıyla kaydedildi!');
+                    console.log('All table data saved successfully');
+                    
+                } catch (error) {
+                    btn.prop('disabled', false).html(original);
+                    console.error('Error saving table data:', error);
+                    alert('Tablo verileri kaydedilirken bir hata oluştu: ' + error);
+                }
+            }
+
+            // Competition Companies verilerini kaydet
+            async function saveCompetitionCompaniesData() {
+                console.log('Saving competition companies data...');
+                
+                // Tablodaki tüm satırları al
+                var companies = [];
+                $('#competitionCompaniesBody tr').each(function() {
+                    var row = $(this);
+                    var companyName = row.find('input[name="companyName"]').val();
+                    var competedPrice = row.find('input[name="competedPrice"]').val();
+                    var notes = row.find('input[name="notes"]').val();
+                    var rowId = row.attr('id').replace('competition_', '');
+                    
+                    if (companyName && companyName.trim() !== '') {
+                        companies.push({
+                            id: rowId.startsWith('new_') ? null : rowId,
+                            proposalId: '@proposal.Id',
+                            companyName: companyName.trim(),
+                            competedPrice: competedPrice ? parseFloat(competedPrice) : null,
+                            notes: notes ? notes.trim() : ''
+                        });
+                    }
+                });
+                
+                console.log('Found competition companies:', companies.length);
+                
+                // Her bir company için API çağrısı yap
+                for (var i = 0; i < companies.length; i++) {
+                    var company = companies[i];
+                    
+                    if (company.id) {
+                        // Mevcut kayıt - güncelle
+                        await $.ajax({
+                            url: '/Proposals/UpdateCompetitionCompany',
+                            type: 'POST',
+                            data: JSON.stringify(company),
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    console.log('Competition company updated:', company.id);
+                                } else {
+                                    console.error('Error updating competition company:', response.message);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error updating competition company:', error);
+                                console.error('Response:', xhr.responseText);
+                            }
+                        });
+                    } else {
+                        // Yeni kayıt - oluştur
+                        await $.ajax({
+                            url: '/Proposals/CreateCompetitionCompany',
+                            type: 'POST',
+                            data: JSON.stringify(company),
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    console.log('Competition company created:', response.id);
+                                } else {
+                                    console.error('Error creating competition company:', response.message);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error creating competition company:', error);
+                                console.error('Response:', xhr.responseText);
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Business Partners verilerini kaydet
+            async function saveBusinessPartnersData() {
+                console.log('Saving business partners data...');
+                
+                // Tablodaki tüm satırları al
+                var partners = [];
+                $('#businessPartnersBody tr').each(function() {
+                    var row = $(this);
+                    var partnerName = row.find('input[name="partnerName"]').val();
+                    var role = row.find('input[name="role"]').val();
+                    var contactInfo = row.find('input[name="contactInfo"]').val();
+                    var notes = row.find('input[name="notes"]').val();
+                    var rowId = row.attr('id').replace('partner_', '');
+                    
+                    if (partnerName && partnerName.trim() !== '') {
+                        partners.push({
+                            id: rowId.startsWith('new_') ? null : rowId,
+                            proposalId: '@proposal.Id',
+                            partnerName: partnerName.trim(),
+                            role: role ? role.trim() : '',
+                            contactInfo: contactInfo ? contactInfo.trim() : '',
+                            notes: notes ? notes.trim() : ''
+                        });
+                    }
+                });
+                
+                console.log('Found business partners:', partners.length);
+                
+                // Her bir partner için API çağrısı yap
+                for (var i = 0; i < partners.length; i++) {
+                    var partner = partners[i];
+                    
+                    if (partner.id) {
+                        // Mevcut kayıt - güncelle
+                        await $.ajax({
+                            url: '/Proposals/UpdateBusinessPartner',
+                            type: 'POST',
+                            data: JSON.stringify(partner),
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    console.log('Business partner updated:', partner.id);
+                                } else {
+                                    console.error('Error updating business partner:', response.message);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error updating business partner:', error);
+                                console.error('Response:', xhr.responseText);
+                            }
+                        });
+                    } else {
+                        // Yeni kayıt - oluştur
+                        await $.ajax({
+                            url: '/Proposals/CreateBusinessPartner',
+                            type: 'POST',
+                            data: JSON.stringify(partner),
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            success: function(response) {
+                                if (response.success) {
+                                    console.log('Business partner created:', response.id);
+                                } else {
+                                    console.error('Error creating business partner:', response.message);
+                                }
+                            },
+                            error: function(xhr, status, error) {
+                                console.error('Error creating business partner:', error);
+                                console.error('Response:', xhr.responseText);
+                            }
+                        });
+                    }
+                }
+            }
+
+            // Sayfa yüklendiğinde ticari verilerin doğru şekilde görünmesini sağla
+            function loadCommercialData() {
+                console.log('loadCommercialData called');
+                
+                // Ticari alanları doldur
+                $('input[name="TargetPrice"]').val('@(proposal.TargetPrice?.ToString("F2") ?? "")');
+                $('input[name="PaymentMethod"]').val('@(proposal.PaymentMethod ?? "")');
+                $('input[name="PaymentTerm"]').val('@(proposal.PaymentTerm ?? "")');
+                $('input[name="ValidUntilDate"]').val('@(proposal.ValidUntilDate?.ToString("yyyy-MM-dd") ?? "")');
+                $('textarea[name="CommercialNote"]').val('@(proposal.CommercialNote ?? "")');
+                
+                console.log('loadCommercialData completed');
+            }
+
+            // Sayfa yüklendiğinde ticari verileri yükle
+            loadCommercialData();
+            
+            // Tablo verilerini yükle
+            loadCompetitionCompanies();
+            loadBusinessPartners();
+            
+            // Buton event handler'larını bağla - document ready içinde
+            $(document).ready(function() {
+                console.log('Document ready - binding button events');
+                
+                $('#addCompetitionCompanyBtn').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    console.log('Competition company button clicked via jQuery');
+                    addCompetitionCompany();
+                });
+                
+                $('#addBusinessPartnerBtn').off('click').on('click', function(e) {
+                    e.preventDefault();
+                    console.log('Business partner button clicked via jQuery');
+                    addBusinessPartner();
+                });
+                
+                console.log('Button events bound successfully');
+                
+                // Test: Butonların varlığını kontrol et
+                console.log('Competition button exists:', $('#addCompetitionCompanyBtn').length > 0);
+                console.log('Business partner button exists:', $('#addBusinessPartnerBtn').length > 0);
+            });
+            
+            
+            // Validation hata mesajını gösteren fonksiyon
+            function showValidationError(message) {
+                // Önceki hata mesajlarını temizle
+                $('.validation-error-alert').remove();
+                
+                var errorAlert = $('<div class="alert alert-danger validation-error-alert alert-dismissible fade show" role="alert">' +
+                    '<i class="fas fa-exclamation-triangle me-2"></i>' + message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>');
+                
+                $('#step-content-container').prepend(errorAlert);
+                
+                // 5 saniye sonra otomatik kapat
+                setTimeout(function() {
+                    errorAlert.alert('close');
+                }, 5000);
+            }
+
+            function goToNextStep() {
+                var currentStep = $('#proposal-steps a.active');
+                var nextStep = currentStep.next('a');
+                if (nextStep.length > 0) {
+                    $('#proposal-steps a').removeClass('active');
+                    nextStep.addClass('active');
+                    loadStepContent(nextStep);
+                    showSuccessMessage('Information saved successfully. Proceeding to the next step.');
+                } else {
+                    showSuccessMessage('All steps completed! You can now download the Word document.');
+                }
+            }
+
+            function showSuccessMessage(message) {
+                // Önceki mesajları temizle
+                $('.alert-success').remove();
+                
+                var alertDiv = $('<div class="alert alert-success alert-dismissible fade show" role="alert" style="position: fixed; top: 20px; right: 20px; z-index: 9999; min-width: 300px;">' +
+                    '<i class="fas fa-check-circle me-2"></i>' + message +
+                    '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
+                    '</div>');
+                $('body').append(alertDiv);
+                
+                // 3 saniye sonra otomatik kapat
+                setTimeout(function() {
+                    alertDiv.alert('close');
+                }, 3000);
+            }
+
+            // ===== REKABET EDİLEN FİRMALAR TABLOSU =====
+            function loadCompetitionCompanies() {
+                $.get('/Proposals/GetCompetitionCompanies', { proposalId: '@proposal.Id' }, function(data) {
+                    var tbody = $('#competitionCompaniesBody');
+                    tbody.empty();
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(function(company) {
+                            addCompetitionCompanyRow(company);
+                        });
+                    }
+                }).fail(function() {
+                    console.error('Error loading competition companies');
+                });
+            }
+
+            function addCompetitionCompany() {
+                console.log('addCompetitionCompany called');
+                var newCompany = {
+                    id: null,
+                    proposalId: '@proposal.Id',
+                    companyName: '',
+                    competedPrice: null,
+                    notes: ''
+                };
+                addCompetitionCompanyRow(newCompany);
+            }
+
+            function addCompetitionCompanyRow(company) {
+                var rowId = company.id || 'new_' + Date.now();
+                var row = `
+                    <tr id="competition_${rowId}">
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="companyName"
+                                   value="${company.companyName || ''}" 
+                                   onchange="updateCompetitionCompany('${rowId}', 'companyName', this.value)">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control form-control-sm" 
+                                   name="competedPrice"
+                                   value="${company.competedPrice || ''}" 
+                                   step="0.01" 
+                                   onchange="updateCompetitionCompany('${rowId}', 'competedPrice', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="notes"
+                                   value="${company.notes || ''}" 
+                                   onchange="updateCompetitionCompany('${rowId}', 'notes', this.value)">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    onclick="deleteCompetitionCompany('${rowId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $('#competitionCompaniesBody').append(row);
+            }
+
+            function updateCompetitionCompany(rowId, field, value) {
+                var isNew = rowId.startsWith('new_');
+                var companyId = isNew ? null : rowId;
+                
+                if (isNew) {
+                    // Yeni kayıt oluştur
+                    var companyData = {
+                        proposalId: '@proposal.Id',
+                        companyName: '',
+                        competedPrice: null,
+                        notes: ''
+                    };
+                    
+                    // Mevcut satırdaki değerleri al
+                    var row = $(`#competition_${rowId}`);
+                    companyData.companyName = row.find('input[onchange*="companyName"]').val();
+                    companyData.competedPrice = parseFloat(row.find('input[onchange*="competedPrice"]').val()) || null;
+                    companyData.notes = row.find('input[onchange*="notes"]').val();
+                    
+                    // Tüm alanlar dolu ise kaydet
+                    if (companyData.companyName.trim() !== '') {
+                        $.ajax({
+                            url: '/Proposals/CreateCompetitionCompany',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(companyData),
+                            success: function(response) {
+                                if (response.success) {
+                                    // Satır ID'sini güncelle
+                                    $(`#competition_${rowId}`).attr('id', `competition_${response.id}`);
+                                    $(`#competition_${response.id} input`).each(function() {
+                                        var onchange = $(this).attr('onchange');
+                                        $(this).attr('onchange', onchange.replace(rowId, response.id));
+                                    });
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Mevcut kaydı güncelle
+                    var companyData = {
+                        id: companyId,
+                        proposalId: '@proposal.Id',
+                        companyName: '',
+                        competedPrice: null,
+                        notes: ''
+                    };
+                    
+                    var row = $(`#competition_${rowId}`);
+                    companyData.companyName = row.find('input[onchange*="companyName"]').val();
+                    companyData.competedPrice = parseFloat(row.find('input[onchange*="competedPrice"]').val()) || null;
+                    companyData.notes = row.find('input[onchange*="notes"]').val();
+                    
+                    $.ajax({
+                        url: '/Proposals/UpdateCompetitionCompany',
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify(companyData),
+                        success: function(response) {
+                            if (!response.success) {
+                                console.error('Error updating competition company:', response.message);
+                            }
+                        }
+                    });
+                }
+            }
+
+            function deleteCompetitionCompany(rowId) {
+                var isNew = rowId.startsWith('new_');
+                
+                if (isNew) {
+                    // Yeni satır ise sadece DOM'dan kaldır
+                    $(`#competition_${rowId}`).remove();
+                } else {
+                    // Mevcut kayıt ise sunucudan sil
+                    $.ajax({
+                        url: '/Proposals/DeleteCompetitionCompany',
+                        type: 'DELETE',
+                        data: { id: rowId },
+                        success: function(response) {
+                            if (response.success) {
+                                $(`#competition_${rowId}`).remove();
+                            } else {
+                                console.error('Error deleting competition company:', response.message);
+                            }
+                        }
+                    });
+                }
+            }
+
+            // ===== İŞ ORTAKLARI TABLOSU =====
+            function loadBusinessPartners() {
+                $.get('/Proposals/GetBusinessPartners', { proposalId: '@proposal.Id' }, function(data) {
+                    var tbody = $('#businessPartnersBody');
+                    tbody.empty();
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(function(partner) {
+                            addBusinessPartnerRow(partner);
+                        });
+                    }
+                }).fail(function() {
+                    console.error('Error loading business partners');
+                });
+            }
+
+            function addBusinessPartner() {
+                console.log('addBusinessPartner called');
+                var newPartner = {
+                    id: null,
+                    proposalId: '@proposal.Id',
+                    partnerName: '',
+                    role: '',
+                    contactInfo: '',
+                    notes: ''
+                };
+                addBusinessPartnerRow(newPartner);
+            }
+
+            function addBusinessPartnerRow(partner) {
+                var rowId = partner.id || 'new_' + Date.now();
+                var row = `
+                    <tr id="partner_${rowId}">
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="partnerName"
+                                   value="${partner.partnerName || ''}" 
+                                   onchange="updateBusinessPartner('${rowId}', 'partnerName', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="role"
+                                   value="${partner.role || ''}" 
+                                   onchange="updateBusinessPartner('${rowId}', 'role', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="contactInfo"
+                                   value="${partner.contactInfo || ''}" 
+                                   onchange="updateBusinessPartner('${rowId}', 'contactInfo', this.value)">
+                        </td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="notes"
+                                   value="${partner.notes || ''}" 
+                                   onchange="updateBusinessPartner('${rowId}', 'notes', this.value)">
+                        </td>
+                        <td>
+                            <button type="button" class="btn btn-danger btn-sm" 
+                                    onclick="deleteBusinessPartner('${rowId}')">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                `;
+                $('#businessPartnersBody').append(row);
+            }
+
+            function updateBusinessPartner(rowId, field, value) {
+                var isNew = rowId.startsWith('new_');
+                var partnerId = isNew ? null : rowId;
+                
+                if (isNew) {
+                    // Yeni kayıt oluştur
+                    var partnerData = {
+                        proposalId: '@proposal.Id',
+                        partnerName: '',
+                        role: '',
+                        contactInfo: '',
+                        notes: ''
+                    };
+                    
+                    // Mevcut satırdaki değerleri al
+                    var row = $(`#partner_${rowId}`);
+                    partnerData.partnerName = row.find('input[onchange*="partnerName"]').val();
+                    partnerData.role = row.find('input[onchange*="role"]').val();
+                    partnerData.contactInfo = row.find('input[onchange*="contactInfo"]').val();
+                    partnerData.notes = row.find('input[onchange*="notes"]').val();
+                    
+                    // Tüm alanlar dolu ise kaydet
+                    if (partnerData.partnerName.trim() !== '' && partnerData.role.trim() !== '') {
+                        $.ajax({
+                            url: '/Proposals/CreateBusinessPartner',
+                            type: 'POST',
+                            contentType: 'application/json',
+                            data: JSON.stringify(partnerData),
+                            success: function(response) {
+                                if (response.success) {
+                                    // Satır ID'sini güncelle
+                                    $(`#partner_${rowId}`).attr('id', `partner_${response.id}`);
+                                    $(`#partner_${response.id} input`).each(function() {
+                                        var onchange = $(this).attr('onchange');
+                                        $(this).attr('onchange', onchange.replace(rowId, response.id));
+                                    });
+                                }
+                            }
+                        });
+                    }
+                } else {
+                    // Mevcut kaydı güncelle
+                    var partnerData = {
+                        id: partnerId,
+                        proposalId: '@proposal.Id',
+                        partnerName: '',
+                        role: '',
+                        contactInfo: '',
+                        notes: ''
+                    };
+                    
+                    var row = $(`#partner_${rowId}`);
+                    partnerData.partnerName = row.find('input[onchange*="partnerName"]').val();
+                    partnerData.role = row.find('input[onchange*="role"]').val();
+                    partnerData.contactInfo = row.find('input[onchange*="contactInfo"]').val();
+                    partnerData.notes = row.find('input[onchange*="notes"]').val();
+                    
+                    $.ajax({
+                        url: '/Proposals/UpdateBusinessPartner',
+                        type: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify(partnerData),
+                        success: function(response) {
+                            if (!response.success) {
+                                console.error('Error updating business partner:', response.message);
+                            }
+                        }
+                    });
+                }
+            }
+
+            function deleteBusinessPartner(rowId) {
+                var isNew = rowId.startsWith('new_');
+                
+                if (isNew) {
+                    // Yeni satır ise sadece DOM'dan kaldır
+                    $(`#partner_${rowId}`).remove();
+                } else {
+                    // Mevcut kayıt ise sunucudan sil
+                    $.ajax({
+                        url: '/Proposals/DeleteBusinessPartner',
+                        type: 'DELETE',
+                        data: { id: rowId },
+                        success: function(response) {
+                            if (response.success) {
+                                $(`#partner_${rowId}`).remove();
+                            } else {
+                                console.error('Error deleting business partner:', response.message);
+                            }
+                        }
+                    });
+                }
+            }
+
         });
     </script>
 }
+
+<style>
+    .step-badge { 
+        background-color: #0d6efd; 
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+    
+    .accordion-button.disabled { 
+        pointer-events: none; 
+        opacity: .6; 
+    }
+    
+    .accordion-button:not(.collapsed) {
+        background-color: #f8f9fa !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    .accordion-button:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .card {
+        border: none;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+        box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    }
+    
+    .form-control, .form-select {
+        border: 1px solid #ced4da;
+        border-radius: 0.375rem;
+        transition: all 0.3s ease;
+    }
+    
+    .form-control:focus, .form-select:focus {
+        border-color: #86b7fe;
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.075);
+    }
+    
+    .btn {
+        border-radius: 0.375rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn:hover {
+        transform: translateY(-1px);
+    }
+    
+    .badge {
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+</style>
 

@@ -2,107 +2,153 @@
 using Microsoft.EntityFrameworkCore;
 using SO.Domain.Entities.AccountModule;
 using SO.Domain.Entities.Common;
-using SO.Domain.Entities.Identity; // Bunu ekleyeceğiz
+using SO.Domain.Entities.Identity;
 using SO.Domain.Entities.ProposalModule;
+using System;
+using Microsoft.AspNetCore.Http;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace SO.Persistence.Contexts
 {
     // IdentityDbContext'i AppUser ve AppRole ile birlikte kullanacağımızı belirtiyoruz.
     public class SODbContext : IdentityDbContext<AppUser, AppRole, string>
     {
-       
-        public SODbContext(DbContextOptions options) : base(options)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public SODbContext(DbContextOptions options, IHttpContextAccessor httpContextAccessor) : base(options)
         {
+            _httpContextAccessor = httpContextAccessor;
         }
 
         // Domain katmanında oluşturduğumuz tüm entity'ler için DbSet'ler
         public DbSet<Account> Accounts { get; set; }
         public DbSet<Address> Addresses { get; set; }
         public DbSet<Proposal> Proposals { get; set; }
-        public DbSet<ProposalItem> ProposalItems { get; set; }
-        public DbSet<Milestone> Milestones { get; set; }
-        public DbSet<SuccessCriterion> SuccessCriteria { get; set; }
-        public DbSet<CriticalSuccessFactor> CriticalSuccessFactors { get; set; }
-        public DbSet<BusinessObjective> BusinessObjectives { get; set; }
-        public DbSet<CustomerBeneficiary> CustomerBeneficiaries { get; set; }
-        public DbSet<ProjectStakeholder> ProjectStakeholders { get; set; }
-        public DbSet<ResourceRequirement> ResourceRequirements { get; set; }
-        protected override void OnModelCreating(ModelBuilder builder)
-       
+        public DbSet<CompetitionCompany> CompetitionCompanies { get; set; }
+        public DbSet<BusinessPartner> BusinessPartners { get; set; }
+        
+        // Permission system
+        public DbSet<AppPermission> Permissions { get; set; }
+        public DbSet<PermissionRole> PermissionRoles { get; set; }
 
+        protected override void OnModelCreating(ModelBuilder builder)
         {
             // Bu satır Identity tablolarının (AspNetUsers vb.) kurulması için önemlidir.
             base.OnModelCreating(builder);
 
-            // Fluent API ile tüm ilişkileri burada tanımlamak en iyi pratiktir.
+            // Identity User ile Proposal ilişkisi
+            builder.Entity<AppUser>()
+                .HasMany(u => u.CreatedProposals)
+                .WithOne()
+                .HasForeignKey("CreatedById")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Identity User ile Account ilişkisi
+            builder.Entity<AppUser>()
+                .HasMany(u => u.ManagedAccounts)
+                .WithOne()
+                .HasForeignKey("ManagedById")
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Account-Address
             builder.Entity<Account>()
                 .HasMany(a => a.Addresses)
                 .WithOne(ad => ad.Account)
                 .HasForeignKey(ad => ad.AccountId);
 
+            // Account-Proposal
             builder.Entity<Account>()
                 .HasMany(a => a.Proposals)
                 .WithOne(p => p.Account)
                 .HasForeignKey(p => p.AccountId);
 
+            // Proposal-CompetitionCompany
             builder.Entity<Proposal>()
-                .HasMany(p => p.ProposalItems)
-                .WithOne(pi => pi.Proposal)
-                .HasForeignKey(pi => pi.ProposalId);
+                .HasMany(p => p.CompetitionCompanies)
+                .WithOne(cc => cc.Proposal)
+                .HasForeignKey(cc => cc.ProposalId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // Proposal-BusinessPartner
             builder.Entity<Proposal>()
-                .HasMany(p => p.Milestones)
-                .WithOne(m => m.Proposal)
-                .HasForeignKey(m => m.ProposalId);
+                .HasMany(p => p.BusinessPartners)
+                .WithOne(bp => bp.Proposal)
+                .HasForeignKey(bp => bp.ProposalId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Proposal>()
-                .HasMany(p => p.SuccessCriteria)
-                .WithOne(sc => sc.Proposal)
-                .HasForeignKey(sc => sc.ProposalId);
+            // Permission-PermissionRole ilişkisi
+            builder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Permission)
+                .WithMany(p => p.PermissionRoles)
+                .HasForeignKey(pr => pr.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-            builder.Entity<Proposal>()
-                .HasMany(p => p.CriticalSuccessFactors)
-                .WithOne(csf => csf.Proposal)
-                .HasForeignKey(csf => csf.ProposalId);
-            builder.Entity<Proposal>()
-               .HasMany(p => p.BusinessObjectives)
-               .WithOne(bo => bo.Proposal)
-               .HasForeignKey(bo => bo.ProposalId);
-            builder.Entity<Proposal>()
-               .HasMany(p => p.ProjectStakeholders)
-               .WithOne(ps => ps.Proposal)
-               .HasForeignKey(ps => ps.ProposalId);
-            builder.Entity<Proposal>()
-                .HasMany(p => p.CustomerBeneficiaries)
-                .WithOne(cb => cb.Proposal)
-                .HasForeignKey(cb => cb.ProposalId);
-            builder.Entity<Proposal>()
-              .HasMany(p => p.ResourceRequirements)
-              .WithOne(rr => rr.Proposal)
-              .HasForeignKey(rr => rr.ProposalId);
+            builder.Entity<PermissionRole>()
+                .HasOne(pr => pr.Role)
+                .WithMany()
+                .HasForeignKey(pr => pr.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Unique constraint: Aynı permission-role kombinasyonu sadece bir kez olabilir
+            builder.Entity<PermissionRole>()
+                .HasIndex(pr => new { pr.PermissionId, pr.RoleId })
+                .IsUnique();
+
         }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
             var datas = ChangeTracker.Entries<BaseEntity>();
+            var currentUserId = GetCurrentUserId();
 
             foreach (var data in datas)
             {
-                // _ = data.State switch ... C# 8.0 ve üzeri için daha modern bir yazımdır.
                 switch (data.State)
                 {
                     case EntityState.Added:
                         data.Entity.CreatedDate = DateTime.UtcNow;
-                        // data.Entity.CreatedBy = ...; // Login olan kullanıcı bilgisi buraya gelecek
+                        data.Entity.CreatedById = currentUserId;
                         break;
                     case EntityState.Modified:
                         data.Entity.ModifiedDate = DateTime.UtcNow;
-                        // data.Entity.ModifiedBy = ...; // Login olan kullanıcı bilgisi buraya gelecek
+                        data.Entity.ModifiedById = currentUserId;
                         break;
                 }
             }
 
             return base.SaveChangesAsync(cancellationToken);
         }
+
+        private string? GetCurrentUserId()
+        {
+            try
+            {
+                var user = _httpContextAccessor?.HttpContext?.User;
+                if (user?.Identity?.IsAuthenticated == true)
+                {
+                    // NameIdentifier claim'ini kullan (Identity'de bu genellikle user ID'dir)
+                    var nameIdentifier = user.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+                    if (!string.IsNullOrEmpty(nameIdentifier))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"SODbContext.GetCurrentUserId: Found user ID: {nameIdentifier}");
+                        return nameIdentifier;
+                    }
+                    
+                    // Debug: Tüm claim'leri yazdır
+                    System.Diagnostics.Debug.WriteLine("SODbContext.GetCurrentUserId: No NameIdentifier found, checking all claims:");
+                    foreach (var claim in user.Claims)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Claim: {claim.Type} = {claim.Value}");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"SODbContext.GetCurrentUserId: Error: {ex.Message}");
+            }
+            return null;
+        }
     }
 }
+

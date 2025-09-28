@@ -1,59 +1,38 @@
-﻿@using SO.Application.DTOs.ProposalModule.Proposal
-@model SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal.GetByIdProposalQueryResponse
+﻿@using SO.Application.Features.Queries.ProposalModule.Proposal.GetByIdProposal
+@model GetByIdProposalQueryResponse
 
 @{
-    var proposal = Model.Result as SingleProposal;
+    var proposal = Model.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal;
 }
 
 <div class="card">
     <div class="card-header">
-        <h5 class="card-title mb-0">Create Project Summary</h5>
+        <h5 class="card-title mb-0">
+            <i class="fas fa-clipboard-list me-2"></i>Create Project Summary
+        </h5>
     </div>
     <div class="card-body">
-        <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post">
+        <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post" id="projectSummaryForm" class="needs-validation" novalidate>
+            @Html.AntiForgeryToken()
 
             <div class="form-group mb-3">
-                <label asp-for="@proposal.ProjectDescription" class="form-label fw-bold">Project Description</label>
-                <textarea name="ProjectDescription" class="form-control" rows="5">@proposal.ProjectDescription</textarea>
+                <label class="form-label fw-bold">Project Description <span class="text-danger">*</span></label>
+                <textarea name="ProjectDescription" class="form-control" rows="5" placeholder="Enter project description here..." required>@proposal.ProjectDescription</textarea>
             </div>
 
-            <div class="form-group mb-3">
-                <label asp-for="@proposal.StatementOfNeed" class="form-label fw-bold">Statement of Need or Opportunity</label>
-                <textarea name="StatementOfNeed" class="form-control" rows="5">@proposal.StatementOfNeed</textarea>
-            </div>
+            
 
             <hr />
 
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <h6 class="card-subtitle text-muted">Business Objective(s)</h6>
-                <button type="button" id="addObjectiveBtn" class="btn btn-sm btn-success">Yeni Hedef Ekle</button>
-            </div>
+            
 
-            <table class="table table-bordered">
-                <thead class="table-light">
-                    <tr>
-                        <th style="width: 45%;">Objective</th>
-                        <th style="width: 45%;">Alignment</th>
-                        <th style="width: 10%;"></th>
-                    </tr>
-                </thead>
-                <tbody id="objectivesContainer">
-                    @if (proposal.BusinessObjectives != null && proposal.BusinessObjectives.Any())
-                    {
-                        for (int i = 0; i < proposal.BusinessObjectives.Count; i++)
-                        {
-                            <tr class="objective-row">
-                                <td><input name="BusinessObjectives[@i].Objective" class="form-control" value="@proposal.BusinessObjectives[i].Objective" /></td>
-                                <td><input name="BusinessObjectives[@i].Alignment" class="form-control" value="@proposal.BusinessObjectives[i].Alignment" /></td>
-                                <td><button type="button" class="btn btn-danger btn-sm removeObjectiveBtn">Sil</button></td>
-                            </tr>
-                        }
-                    }
-                </tbody>
-            </table>
-
-            <div class="d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">Kaydet ve Devam Et</button>
+            <div class="d-flex justify-content-between align-items-center mt-4">
+                <div class="text-muted">
+                    <small><i class="fas fa-info-circle me-1"></i>Your information will be automatically saved and proceed to the next step.</small>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-2"></i>Save and Continue
+                </button>
             </div>
         </form>
     </div>
@@ -61,29 +40,109 @@
 
 <script>
     $(document).ready(function () {
-        let objectiveIndex = $('#objectivesContainer .objective-row').length;
+        let objectiveIndex = 0;
+
+        // Real-time validation için input event listener'ları
+        $(document).on('input', 'input, textarea', function() {
+            var field = $(this);
+            var value = field.val().trim();
+            
+            if (value === '') {
+                field.removeClass('is-valid').addClass('is-invalid');
+            } else {
+                field.removeClass('is-invalid').addClass('is-valid');
+            }
+            
+            // Satır validation'ını güncelle
+            validateRow($(this).closest('tr'));
+        });
 
         $("#addObjectiveBtn").click(function () {
             var newRow = `
                 <tr class="objective-row">
-                    <td><input name="BusinessObjectives[${objectiveIndex}].Objective" class="form-control" /></td>
-                    <td><input name="BusinessObjectives[${objectiveIndex}].Alignment" class="form-control" /></td>
-                    <td><button type="button" class="btn btn-danger btn-sm removeObjectiveBtn">Sil</button></td>
+                    <td><input name="BusinessObjectives[${objectiveIndex}].Objective" class="form-control" placeholder="Enter objective description..." required /></td>
+                    <td><input name="BusinessObjectives[${objectiveIndex}].Alignment" class="form-control" placeholder="Enter alignment description..." required /></td>
+                    <td><button type="button" class="btn btn-danger btn-sm removeObjectiveBtn"><i class="fas fa-trash"></i></button></td>
                 </tr>`;
             $("#objectivesContainer").append(newRow);
             objectiveIndex++;
         });
 
-        $(document).on('click', '.removeObjectiveBtn', function () {
-            $(this).closest('tr').remove();
-            $('#objectivesContainer .objective-row').each(function(index, tr) {
-                $(tr).find('input').each(function() {
-                    var oldName = $(this).attr('name');
-                    var newName = oldName.replace(/\[\d+\]/, '[' + index + ']');
-                    $(this).attr('name', newName);
-                });
-            });
-            objectiveIndex = $('#objectivesContainer .objective-row').length;
+        $(document).on('click', '.removeObjectiveBtn', function () { });
+
+        // Form validation fonksiyonu
+        $('#projectSummaryForm').on('submit', function(e) {
+            if (!validateForm()) {
+                e.preventDefault();
+                return false;
+            }
         });
+
+        // Satır validation fonksiyonu
+        function validateRow(row) {
+            if (row.length === 0) return; // Header row için
+            
+            var hasError = false;
+            row.find('input, textarea').each(function() {
+                var field = $(this);
+                var value = field.val().trim();
+                
+                if (value === '') {
+                    hasError = true;
+                }
+            });
+            
+            if (hasError) {
+                row.removeClass('table-success').addClass('table-danger');
+            } else {
+                row.removeClass('table-danger').addClass('table-success');
+            }
+        }
+
+        // Form validation fonksiyonu
+        function validateForm() {
+            var isValid = true;
+            var hasError = false;
+            
+            // Tüm required alanları kontrol et
+            $('#projectSummaryForm input[required], #projectSummaryForm textarea[required]').each(function() {
+                var field = $(this);
+                var value = field.val().trim();
+                
+                if (value === '') {
+                    isValid = false;
+                    hasError = true;
+                    field.addClass('is-invalid');
+                } else {
+                    field.removeClass('is-invalid').addClass('is-valid');
+                }
+            });
+            
+            // Eğer validation hatası varsa kullanıcıya bildir
+            if (hasError) {
+                showValidationError('Please fill in all required fields. Empty fields are not allowed.');
+                return false;
+            }
+            
+            return true;
+        }
+
+        // Validation error mesajı gösterme
+        function showValidationError(message) {
+            // Mevcut error mesajını kaldır
+            $('.validation-error-alert').remove();
+            
+            const errorHtml = `
+                <div class="alert alert-danger validation-error-alert" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>${message}
+                </div>
+            `;
+            $('#projectSummaryForm').prepend(errorHtml);
+            
+            // 5 saniye sonra otomatik kaldır
+            setTimeout(() => {
+                $('.validation-error-alert').fadeOut();
+            }, 5000);
+        }
     });
 </script>

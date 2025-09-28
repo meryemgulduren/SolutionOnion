@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using SO.Application.Features.Commands.AccountModule.Address.UpdateAddress;
 
-namespace S0.Application.Features.Commands.AccountModule.Address.UpdateAddress
+namespace SO.Application.Features.Commands.AccountModule.Address.UpdateAddress
 {
     public class UpdateAddressCommandHandler : IRequestHandler<UpdateAddressCommandRequest, UpdateAddressCommandResponse>
     {
@@ -40,7 +40,10 @@ namespace S0.Application.Features.Commands.AccountModule.Address.UpdateAddress
                 Mail = request.Mail,
                 Active = request.Active
             });
-            return new();
+            return new()
+            {
+                Succeeded = true
+            };
         }
     }
 }

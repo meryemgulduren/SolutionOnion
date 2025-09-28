@@ -8,7 +8,7 @@ namespace SO.Application.DTOs.AccountModule.Address
 {
     public class CreateAddress
     {
-        public string AccountId { get; set; }
+        public Guid AccountId { get; set; }
         public bool isDefault { get; set; } = false;
         public string? AddressType { get; set; }
         public string? AddressName { get; set; }
@@ -23,6 +23,6 @@ namespace SO.Application.DTOs.AccountModule.Address
         public string? Phone { get; set; }
         public string? Fax { get; set; }
         public string? Mail { get; set; }
-        public string Active { get; set; }
+        public bool Active { get; set; } = true;
     }
 }

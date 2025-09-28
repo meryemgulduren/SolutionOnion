@@ -26,7 +26,7 @@ namespace SO.Domain.Entities.AccountModule
         public string? Phone { get; set; }
         public string? Fax { get; set; }
         public string? Mail { get; set; }
-        public string Active { get; set; }
+        public bool Active { get; set; } = true;
 
         // Navigation properties
         public Account Account { get; set; }

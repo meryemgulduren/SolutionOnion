@@ -3,18 +3,24 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.ComponentModel.DataAnnotations;
 
 using MediatR;
-using SO.Application.DTOs.ProposalModule.ProposalItem;
 using System.Collections.Generic;
 
 namespace SO.Application.Features.Commands.ProposalModule.Proposal.CreateProposal
 {
     public class CreateProposalCommandRequest : IRequest<CreateProposalCommandResponse>
     {
-        public string AccountId { get; set; }
-        public string ProposalName { get; set; }
-        public string PreparedBy { get; set; }
-        public List<CreateProposalItem> ProposalItems { get; set; } = new();
+        [Required(ErrorMessage = "Account ID is required")]
+        public string AccountId { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Proposal name is required")]
+        public string ProposalName { get; set; } = string.Empty;
+        
+        [Required(ErrorMessage = "Prepared by is required")]
+        public string PreparedBy { get; set; } = string.Empty;
+        
+        public string? ProjectDescription { get; set; }
     }
 }

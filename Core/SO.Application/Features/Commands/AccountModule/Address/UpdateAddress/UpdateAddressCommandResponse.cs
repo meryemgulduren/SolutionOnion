@@ -8,7 +8,6 @@ namespace SO.Application.Features.Commands.AccountModule.Address.UpdateAddress
 {
     public class UpdateAddressCommandResponse
     {
-        public bool Succeeded { get; set; }
-
+        public bool Succeeded { get; set; } = true;
     }
 }

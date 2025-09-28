@@ -1,50 +1,291 @@
-﻿@using SO.Application.DTOs.ProposalModule.Proposal
-@model SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal.GetAllProposalQueryResponse
-
-@{
-    ViewData["Title"] = "Teklif Listesi";
-    var proposalList = Model.Result as List<ListProposal>;
+﻿@{
+    ViewData["Title"] = "Teklif Yönetimi";
 }
 
-<h1>Teklif Listesi</h1>
+<div class="container-fluid">
+    <!-- Page Header -->
+    <div class="page-header fade-in">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h1 class="display-4 fw-bold mb-2">
+                    <i class="fas fa-file-contract me-3 text-primary"></i>
+                    Teklif Yönetimi
+                </h1>
+                <p class="page-subtitle lead mb-0">
+                    Tüm proje tekliflerinizi tek yerde oluşturun, yönetin ve takip edin
+                </p>
+            </div>
+            <div class="col-md-4 text-md-end">
+                @if (ViewBag.IsAuthenticated)
+                {
+                    <a asp-action="Create" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus me-2"></i>Yeni Teklif Oluştur
+                    </a>
+                }
+                else
+                {
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Misafir Modu:</strong> 
+                        <a href="@Url.Action("Login", "Account")" class="alert-link">Giriş yapın</a> teklif oluşturmak ve yönetmek için
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
 
-<p>
-    @* İleride "Yeni Teklif Ekle" sayfası için kullanılacak link *@
-    <a asp-action="Create">Yeni Teklif Ekle</a>
-</p>
-<table class="table table-hover">
-    <thead class="table-light">
-        <tr>
-            <th>Teklif Adı</th>
-            <th>Müşteri</th>
-            <th>Tarih</th>
-            <th>Tutar</th>
-            <th>Durum</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @if (proposalList != null && proposalList.Any())
+    <!-- Search and Filter Section -->
+    <div class="search-filter-section">
+        <div class="row g-3 align-items-end">
+            <div class="col-md-4">
+                <label for="searchInput" class="form-label">
+                    <i class="fas fa-search me-2"></i>Teklif Ara
+                </label>
+                <div class="input-group">
+                    <input type="text" class="form-control" id="searchInput" placeholder="İsim, müşteri veya açıklama ile ara...">
+                    <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <label for="statusFilter" class="form-label">
+                    <i class="fas fa-filter me-2"></i>Durum Filtresi
+                </label>
+                <select class="form-select" id="statusFilter">
+                    <option value="">Tüm Durumlar</option>
+                    <option value="Draft">Taslak</option>
+                    <option value="Sent">Gönderildi</option>
+                    <option value="Approved">Onaylandı</option>
+                    <option value="Rejected">Reddedildi</option>
+                    <option value="Cancelled">İptal Edildi</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label for="dateFilter" class="form-label">
+                    <i class="fas fa-calendar me-2"></i>Tarih Aralığı
+                </label>
+                <select class="form-select" id="dateFilter">
+                    <option value="">Tüm Zamanlar</option>
+                    <option value="today">Bugün</option>
+                    <option value="week">Bu Hafta</option>
+                    <option value="month">Bu Ay</option>
+                    <option value="quarter">Bu Çeyrek</option>
+                    <option value="year">Bu Yıl</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-outline-primary w-100" id="clearFilters">
+                    <i class="fas fa-times me-2"></i>Temizle
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alert Container -->
+    <div id="alertContainer"></div>
+
+    <!-- Proposals Table -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h3 class="card-title mb-0">
+                <i class="fas fa-table me-2 text-primary"></i>
+                Teklif Listesi
+            </h3>
+            <div class="header-actions">
+                <button class="btn btn-outline-secondary btn-sm me-2" id="refreshBtn">
+                    <i class="fas fa-sync-alt me-1"></i>Yenile
+                </button>
+                @if (ViewBag.IsAuthenticated)
+                {
+                    <button class="btn btn-outline-success btn-sm" id="exportAllBtn">
+                        <i class="fas fa-download me-1"></i>Tümünü Dışa Aktar
+                    </button>
+                }
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table id="proposalsTable" class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>
+                                <i class="fas fa-file-contract me-2"></i>Teklif Adı
+                            </th>
+                            <th>
+                                <i class="fas fa-building me-2"></i>Müşteri
+                            </th>
+                            <th>
+                                <i class="fas fa-calendar me-2"></i>Tarih
+                            </th>
+                            <th>
+                                <i class="fas fa-money-bill-wave me-2"></i>Tutar
+                            </th>
+                            <th>
+                                <i class="fas fa-info-circle me-2"></i>Durum
+                            </th>
+                            <th class="text-center">
+                                <i class="fas fa-cogs me-2"></i>İşlemler
+                            </th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data will be loaded via AJAX -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card-footer">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <span id="showingCount">0</span> / <span id="totalCount">0</span> teklif gösteriliyor
+                    </small>
+                </div>
+                            <div class="col-md-6 text-md-end">
+                <div class="btn-group btn-group-sm" role="group">
+                    <button type="button" class="btn btn-outline-primary" id="prevPage">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="nextPage">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                @if (!ViewBag.IsAuthenticated)
+                {
+                    <div class="mt-2">
+                        <small class="text-muted">
+                            <i class="fas fa-eye me-1"></i>Sadece okuma modu
+                        </small>
+                    </div>
+                }
+            </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Empty State -->
+    <div id="emptyState" class="empty-state" style="display: none;">
+        <i class="fas fa-file-contract"></i>
+        <h3>Teklif Bulunamadı</h3>
+        <p>İlk proje teklifinizi oluşturarak başlayın</p>
+        @if (ViewBag.IsAuthenticated)
         {
-            @foreach (var item in proposalList)
-            {
-                <tr>
-                    <td>@item.ProposalName</td>
-                    <td>@item.CompanyName</td>
-                    <td>@item.ProposalDate.ToShortDateString()</td>
-                    <td>@item.TotalAmount.ToString("C")</td>
-                    <td>@item.Status</td>
-                    <td>
-                        <a asp-action="Details" asp-route-id="@item.Id">Detaylar</a>
-                    </td>
-                </tr>
-            }
+            <a asp-action="Create" class="btn btn-primary btn-lg">
+                <i class="fas fa-plus me-2"></i>İlk Teklifi Oluştur
+            </a>
         }
         else
         {
-            <tr>
-                <td colspan="6" class="text-center">Kayıtlı teklif bulunamadı.</td>
-            </tr>
+            <a href="@Url.Action("Login", "Account")" class="btn btn-primary btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Teklif Oluşturmak İçin Giriş Yap
+            </a>
         }
-    </tbody>
-</table>
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="loadingSpinner" class="loading-spinner" style="display: none;">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Yükleniyor...</span>
+        </div>
+    </div>
+</div>
+
+<!-- Proposal Details Modal -->
+<div class="modal fade" id="proposalDetailsModal" tabindex="-1" aria-labelledby="proposalDetailsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="proposalDetailsModalLabel">
+                    <i class="fas fa-info-circle me-2 text-primary"></i>
+                    Teklif Detayları
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4 fw-bold">Teklif Adı:</dt>
+                            <dd class="col-sm-8" id="DetailsProposalName"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">Müşteri:</dt>
+                            <dd class="col-sm-8" id="DetailsCompanyName"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">Hazırlayan:</dt>
+                            <dd class="col-sm-8" id="DetailsPreparedBy"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">Teklif Tarihi:</dt>
+                            <dd class="col-sm-8" id="DetailsProposalDate"></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <dl class="row">
+                            <dt class="col-sm-4 fw-bold">Durum:</dt>
+                            <dd class="col-sm-8" id="DetailsStatus"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">Toplam Tutar:</dt>
+                            <dd class="col-sm-8" id="DetailsTotalAmount"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">Proje Açıklaması:</dt>
+                            <dd class="col-sm-8" id="DetailsProjectDescription"></dd>
+                            
+                            <dt class="col-sm-4 fw-bold">İhtiyaç Beyanı:</dt>
+                            <dd class="col-sm-8" id="DetailsStatementOfNeed"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>Kapat
+                </button>
+                @if (ViewBag.IsAuthenticated)
+                {
+                    <button type="button" class="btn btn-primary" id="editFromModal">
+                        <i class="fas fa-edit me-2"></i>Teklifi Düzenle
+                    </button>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Account")" class="btn btn-primary">
+                        <i class="fas fa-sign-in-alt me-2"></i>Düzenlemek İçin Giriş Yap
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    Silme Onayı
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-0">
+                    Bu teklifi silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-2"></i>İptal
+                </button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">
+                    <i class="fas fa-trash me-2"></i>Teklifi Sil
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/proposals.js"></script>
+}

@@ -16,18 +16,14 @@ namespace SO.Application.Abstractions.Services.ProposalModule
 {
     public interface IProposalService
     {
-        Task<List<ListProposal>> GetAllProposalsAsync();
+        Task<List<ListProposal>> GetAllProposalsAsync(string? currentUserId = null, bool isAdmin = false);
         Task<SingleProposal> GetProposalByIdAsync(string id); // EKLENDİ
         Task<string> CreateProposalAsync(CreateProposal createProposal);
         Task UpdateProposalAsync(UpdateProposal updateProposal); // EKLENDİ
         Task UpdateProposalSummaryAsync(UpdateProposalSummary summary);
         Task DeleteProposalAsync(string id); // EKLENDİ
 
-        Task UpdateProposalInitiatorSponsorAsync(UpdateProposalInitiatorSponsor initiatorSponsor);
-
-        Task UpdateProposalCustomersAndDeliverablesAsync(UpdateProposalCustomersAndDeliverables dto);
-        Task UpdateProposalApproachAsync(UpdateProposalApproach dto);
-        Task UpdateProposalResourceRequirementsAsync(UpdateProposalResourceRequirements dto);
+        // Eski adım bazlı metotlar kaldırıldı (tek akışta güncelleniyor)
 
 
 

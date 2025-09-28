@@ -32,6 +32,8 @@ namespace SO.Application.Features.Commands.AccountModule.Account.UpdateAccount
                 ContactPerson = request.ContactPerson,
                 Email = request.Email,
                 PhoneNumber = request.PhoneNumber,
+                TaxOffice = request.TaxOffice,
+                TaxNumber = request.TaxNumber,
                 IsActive = request.IsActive
             });
             return new();

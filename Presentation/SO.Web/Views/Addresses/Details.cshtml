@@ -1,0 +1,170 @@
+@model SO.Application.Features.Queries.AccountModule.Address.GetByIdAddress.GetByIdAddressQueryResponse
+@{
+    ViewData["Title"] = "Address Details";
+}
+
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <div>
+            <h1 class="h3 mb-0 text-gray-800">
+                <i class="fas fa-map-marker-alt text-primary me-2"></i>
+                Address Details
+            </h1>
+            <p class="mb-0 text-muted">View detailed information about the address</p>
+        </div>
+        <div>
+            @if (Model != null)
+            {
+                <a href="/Addresses/Edit/@Model.Id" class="btn btn-primary">
+                    <i class="fas fa-edit me-2"></i>Edit Address
+                </a>
+            }
+            <a href="/SuperAdmin/Addresses" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back to List
+            </a>
+        </div>
+    </div>
+
+    @if (Model != null)
+    {
+        <!-- Basic Information Card -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-info-circle me-2"></i>Basic Information
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Address Name:</label>
+                        <p class="form-control-plaintext">@(Model.AddressName ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Address Type:</label>
+                        <p class="form-control-plaintext">@(Model.AddressType ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">Address Line 1:</label>
+                        <p class="form-control-plaintext">@(Model.AddressLine1 ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-12 mb-3">
+                        <label class="form-label fw-bold">Address Line 2:</label>
+                        <p class="form-control-plaintext">@(Model.AddressLine2 ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">City:</label>
+                        <p class="form-control-plaintext">@Model.City</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">State:</label>
+                        <p class="form-control-plaintext">@Model.State</p>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label fw-bold">Country:</label>
+                        <p class="form-control-plaintext">@Model.Country</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">ZIP Code:</label>
+                        <p class="form-control-plaintext">@(Model.Zip ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Phone:</label>
+                        <p class="form-control-plaintext">@(Model.Phone ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Fax:</label>
+                        <p class="form-control-plaintext">@(Model.Fax ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Email:</label>
+                        <p class="form-control-plaintext">@(Model.Mail ?? "N/A")</p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Is Default:</label>
+                        <p class="form-control-plaintext">
+                            <span class="badge bg-@(Model.isDefault ? "success" : "secondary")">
+                                @(Model.isDefault ? "Yes" : "No")
+                            </span>
+                        </p>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Status:</label>
+                        <p class="form-control-plaintext">
+                            <span class="badge bg-@(Model.Active ? "success" : "secondary")">
+                                @(Model.Active ? "Active" : "Inactive")
+                            </span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Description Card -->
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-align-left me-2"></i>Description
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="form-control-plaintext">@Model.Description</p>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="card shadow mb-4">
+            <div class="card-body text-center">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h4>Address Not Found</h4>
+                <p class="text-muted">The requested address could not be found.</p>
+                <a href="/SuperAdmin/Addresses" class="btn btn-primary">
+                    <i class="fas fa-arrow-left me-2"></i>Back to List
+                </a>
+            </div>
+        </div>
+    }
+</div>
+
+@section Styles {
+    <style>
+        .card {
+            border: none;
+            border-radius: 10px;
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 10px 10px 0 0 !important;
+        }
+        
+        .btn-outline-primary {
+            border-color: #667eea;
+            color: #667eea;
+        }
+        
+        .btn-outline-primary:hover {
+            background-color: #667eea;
+            border-color: #667eea;
+        }
+        
+        .text-primary {
+            color: #667eea !important;
+        }
+        
+        .form-label {
+            color: #495057;
+            font-weight: 600;
+        }
+        
+        .form-control-plaintext {
+            color: #6c757d;
+            font-size: 1rem;
+        }
+    </style>
+}

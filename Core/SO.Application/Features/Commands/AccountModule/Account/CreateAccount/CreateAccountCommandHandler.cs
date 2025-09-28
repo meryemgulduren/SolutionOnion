@@ -29,7 +29,10 @@ namespace SO.Application.Features.Commands.AccountModule.Account.CreateAccount
                 CompanyName = request.CompanyName,
                 ContactPerson = request.ContactPerson,
                 Email = request.Email,
-                PhoneNumber = request.PhoneNumber
+                PhoneNumber = request.PhoneNumber,
+                TaxOffice = request.TaxOffice,
+                TaxNumber = request.TaxNumber,
+                IsActive = request.IsActive
             });
             return new();
         }

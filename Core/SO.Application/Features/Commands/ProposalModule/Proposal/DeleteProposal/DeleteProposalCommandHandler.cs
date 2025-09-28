@@ -23,11 +23,18 @@ namespace SO.Application.Features.Commands.ProposalModule.Proposal.DeleteProposa
 
         public async Task<DeleteProposalCommandResponse> Handle(DeleteProposalCommandRequest request, CancellationToken cancellationToken)
         {
-            // Servis katmanını çağırarak ID'ye göre teklifi siliyoruz.
-            await _proposalService.DeleteProposalAsync(request.Id);
+            try
+            {
+                // Servis katmanını çağırarak ID'ye göre teklifi siliyoruz.
+                await _proposalService.DeleteProposalAsync(request.Id);
 
-            // İşlem başarılı olduğunda boş bir response döndürüyoruz.
-            return new();
+                // İşlem başarılı olduğunda boş bir response döndürüyoruz.
+                return new();
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to delete proposal with ID {request.Id}: {ex.Message}", ex);
+            }
         }
     }
 }

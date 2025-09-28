@@ -10,6 +10,7 @@ namespace SO.Application.Features.Queries.ProposalModule.Proposal.GetAllProposal
 {
     public class GetAllProposalQueryRequest : IRequest<GetAllProposalQueryResponse>
     {
-        // Tüm teklifleri listeleyeceğimiz için bu isteğin şimdilik bir parametreye ihtiyacı yok.
+        public string? CurrentUserId { get; set; }
+        public bool IsAdmin { get; set; } = false;
     }
 }
