@@ -671,38 +671,42 @@ p {
 
 /* ===== STATUS BADGES ===== */
 .status-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 9999px;
-    font-weight: 600;
-    font-size: 0.75rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    padding: 0.35rem 0.75rem;
+    border-radius: 0.25rem;
+    font-weight: 500;
+    font-size: 0.8rem;
     display: inline-block;
+    border: 1px solid;
 }
 
 .status-draft {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    color: #6b7280;
+    background-color: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
 }
 
 .status-sent {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #1d4ed8;
+    background-color: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
 }
 
 .status-approved {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    background-color: #d1fae5;
     color: #065f46;
+    border-color: #a7f3d0;
 }
 
 .status-rejected {
-    background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+    background-color: #fee2e2;
     color: #991b1b;
+    border-color: #fecaca;
 }
 
 .status-cancelled {
-    background: linear-gradient(135deg, #f3f4f6 0%, #e5e7eb 100%);
-    color: #6b7280;
+    background-color: #f3f4f6;
+    color: #374151;
+    border-color: #e5e7eb;
 }
 
 /* ===== ACTION BUTTONS ===== */
@@ -1220,4 +1224,254 @@ textarea.is-valid {
 .table-success textarea:focus {
     border-color: #198754 !important;
     box-shadow: 0 0 0 0.2rem rgba(25, 135, 84, 0.25) !important;
+}
+
+/* ===== STATUS DROPDOWN STYLES ===== */
+.status-dropdown {
+    font-weight: 600;
+    border: 2px solid;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.status-dropdown:hover {
+    transform: scale(1.02);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.status-dropdown:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.status-dropdown.status-draft {
+    background-color: #fef3c7;
+    border-color: #f59e0b;
+    color: #92400e;
+}
+
+.status-dropdown.status-draft:focus {
+    background-color: #fef3c7;
+    box-shadow: 0 0 0 0.25rem rgba(245, 158, 11, 0.25);
+}
+
+.status-dropdown.status-sent {
+    background-color: #dbeafe;
+    border-color: #3b82f6;
+    color: #1e40af;
+}
+
+.status-dropdown.status-sent:focus {
+    background-color: #dbeafe;
+    box-shadow: 0 0 0 0.25rem rgba(59, 130, 246, 0.25);
+}
+
+.status-dropdown.status-approved {
+    background-color: #d1fae5;
+    border-color: #10b981;
+    color: #065f46;
+}
+
+.status-dropdown.status-approved:focus {
+    background-color: #d1fae5;
+    box-shadow: 0 0 0 0.25rem rgba(16, 185, 129, 0.25);
+}
+
+.status-dropdown.status-rejected {
+    background-color: #fee2e2;
+    border-color: #ef4444;
+    color: #991b1b;
+}
+
+.status-dropdown.status-rejected:focus {
+    background-color: #fee2e2;
+    box-shadow: 0 0 0 0.25rem rgba(239, 68, 68, 0.25);
+}
+
+.status-dropdown.status-cancelled {
+    background-color: #e5e7eb;
+    border-color: #6b7280;
+    color: #374151;
+}
+
+.status-dropdown.status-cancelled:focus {
+    background-color: #e5e7eb;
+    box-shadow: 0 0 0 0.25rem rgba(107, 114, 128, 0.25);
+}
+
+.status-dropdown option {
+    background-color: white;
+    color: #374151;
+    padding: 0.5rem;
+}
+
+/* ===== PROFESSIONAL PROPOSAL HEADER ===== */
+.proposal-header {
+    margin-bottom: 1.5rem;
+}
+
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.header-left {
+    flex: 1;
+}
+
+.page-title-wrapper {
+    display: flex;
+    align-items: flex-start;
+}
+
+.page-title {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.5rem 0;
+    line-height: 1.2;
+}
+
+.project-name-section {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.project-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.project-name {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.header-right .btn-success {
+    padding: 0.5rem 1.25rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(25, 135, 84, 0.2);
+    transition: all 0.2s ease;
+}
+
+.header-right .btn-success:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(25, 135, 84, 0.3);
+}
+
+/* Meta Information Bar */
+.header-meta {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 0.85rem 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+}
+
+.meta-item {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.meta-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.meta-value {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+}
+
+.meta-value i {
+    color: #3b82f6;
+    font-size: 0.85rem;
+}
+
+.meta-divider {
+    width: 1px;
+    height: 32px;
+    background: #cbd5e1;
+}
+
+.meta-status {
+    flex: 1;
+    max-width: 200px;
+}
+
+.status-select {
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0.4rem 0.6rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #1e293b;
+    background: white;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.status-select:hover {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.05);
+}
+
+.status-select:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .header-top {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-right {
+        width: 100%;
+    }
+    
+    .header-right .btn-success {
+        width: 100%;
+    }
+    
+    .header-meta {
+        flex-wrap: wrap;
+        gap: 0.75rem;
+    }
+    
+    .meta-divider {
+        display: none;
+    }
+    
+    .meta-item {
+        min-width: calc(50% - 0.5rem);
+    }
+    
+    .meta-status {
+        width: 100%;
+        max-width: 100%;
+    }
 }

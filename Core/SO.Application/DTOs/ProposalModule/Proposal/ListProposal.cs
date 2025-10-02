@@ -9,6 +9,7 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
     public class ListProposal
     {
         public Guid Id { get; set; }
+        public string ProposalCode { get; set; }
         public string ProposalName { get; set; }
         public string CompanyName { get; set; }
         public DateTime ProposalDate { get; set; }

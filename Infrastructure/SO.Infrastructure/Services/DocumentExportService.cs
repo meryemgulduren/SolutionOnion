@@ -56,6 +56,7 @@ namespace SO.Infrastructure.Services
                 .Include(p => p.Account)
                 .Include(p => p.CompetitionCompanies)
                 .Include(p => p.BusinessPartners)
+                .Include(p => p.ProposalRisks)
                 .FirstOrDefaultAsync(p => p.Id == proposalId);
             
             var addressLine = "";
@@ -94,10 +95,30 @@ namespace SO.Infrastructure.Services
                         AddParagraph(body, proposalData.ProjectDescription);
                     }
 
-                    // 3. GENEL TANIM
+                    // 3. RİSKLER VE VARSAYIMLAR
+                    if (proposalEntity != null && proposalEntity.ProposalRisks != null && proposalEntity.ProposalRisks.Any())
+                    {
+                        AddSectionTitle(body, "3. RİSKLER VE VARSAYIMLAR");
+                        
+                        var riskCounter = 1;
+                        foreach (var risk in proposalEntity.ProposalRisks.OrderBy(r => r.Title))
+                        {
+                            if (risk.IsApplicable == true)
+                            {
+                                AddParagraph(body, $"3.{riskCounter}. {risk.Title}");
+                                if (!string.IsNullOrWhiteSpace(risk.Description))
+                                {
+                                    AddParagraph(body, $"   {risk.Description}");
+                                }
+                                riskCounter++;
+                            }
+                        }
+                    }
+
+                    // 4. GENEL TANIM
                     if (proposalEntity != null)
                     {
-                        AddSectionTitle(body, "3. GENEL TANIM");
+                        AddSectionTitle(body, "4. GENEL TANIM");
                         
                         // Genel bilgiler tablosu
                         var generalInfoData = new List<string[]>();
@@ -123,10 +144,10 @@ namespace SO.Infrastructure.Services
                         }
                     }
 
-                    // 4. TİCARİ BİLGİLER
+                    // 5. TİCARİ BİLGİLER
                     if (proposalEntity != null)
                     {
-                        AddSectionTitle(body, "4. TİCARİ BİLGİLER");
+                        AddSectionTitle(body, "5. TİCARİ BİLGİLER");
                         
                         var commercialData = new List<string[]>();
                         if (proposalEntity.TargetPrice.HasValue)
@@ -149,8 +170,8 @@ namespace SO.Infrastructure.Services
                         }
                     }
 
-                    // 5. REKABET ŞİRKETLERİ
-                    AddSectionTitle(body, "5. REKABET ŞİRKETLERİ");
+                    // 6. REKABET ŞİRKETLERİ
+                    AddSectionTitle(body, "6. REKABET ŞİRKETLERİ");
                     
                     var competitionData = new List<string[]>();
                     if (proposalEntity != null && proposalEntity.CompetitionCompanies.Any())
@@ -165,8 +186,8 @@ namespace SO.Infrastructure.Services
                     
                     AddTable(body, new[] { "Şirket Adı", "Rekabet Fiyatı", "Notlar" }, competitionData);
 
-                    // 6. İŞ ORTAKLARI
-                    AddSectionTitle(body, "6. İŞ ORTAKLARI");
+                    // 7. İŞ ORTAKLARI
+                    AddSectionTitle(body, "7. İŞ ORTAKLARI");
                     
                     var partnerData = new List<string[]>();
                     if (proposalEntity != null && proposalEntity.BusinessPartners.Any())
@@ -182,8 +203,8 @@ namespace SO.Infrastructure.Services
                     
                     AddTable(body, new[] { "Ortak Adı", "Rol", "İletişim Bilgisi", "Notlar" }, partnerData);
 
-                    // 7. TEKNİK BİLGİLER
-                    AddSectionTitle(body, "7. TEKNİK BİLGİLER");
+                    // 8. TEKNİK BİLGİLER
+                    AddSectionTitle(body, "8. TEKNİK BİLGİLER");
                     AddParagraph(body, "Bu bölüm proje ile ilgili teknik detayları içermektedir.");
                     if (!string.IsNullOrEmpty(proposalData.ProjectDescription))
                     {
@@ -449,10 +470,12 @@ namespace SO.Infrastructure.Services
             var csv = new StringBuilder();
             csv.AppendLine("Dashboard Statistics");
             csv.AppendLine("Metric,Value");
-            csv.AppendLine($"Total Proposals,{dashboardData.TotalProposalsCount}");
-            csv.AppendLine($"Total Accounts,{dashboardData.ActiveClientsCount}");
-            csv.AppendLine($"Completed Projects,{dashboardData.CompletedProjectsCount}");
             csv.AppendLine($"Draft Proposals,{dashboardData.DraftProposalsCount}");
+            csv.AppendLine($"Sent Proposals,{dashboardData.SentProposalsCount}");
+            csv.AppendLine($"Approved Proposals,{dashboardData.ApprovedProposalsCount}");
+            csv.AppendLine($"Rejected Proposals,{dashboardData.RejectedProposalsCount}");
+            csv.AppendLine($"Cancelled Proposals,{dashboardData.CancelledProposalsCount}");
+            csv.AppendLine($"Total Proposals,{dashboardData.DraftProposalsCount + dashboardData.SentProposalsCount + dashboardData.ApprovedProposalsCount + dashboardData.RejectedProposalsCount + dashboardData.CancelledProposalsCount}");
             csv.AppendLine($"Total Revenue,{dashboardData.TotalRevenue:C}");
             
             return Encoding.UTF8.GetBytes(csv.ToString());
@@ -491,10 +514,12 @@ namespace SO.Infrastructure.Services
             // Dashboard Statistics
             csv.AppendLine("=== DASHBOARD STATISTICS ===");
             csv.AppendLine("Metric,Value");
-            csv.AppendLine($"Total Proposals,{dashboardData.TotalProposalsCount}");
-            csv.AppendLine($"Total Accounts,{dashboardData.ActiveClientsCount}");
-            csv.AppendLine($"Completed Projects,{dashboardData.CompletedProjectsCount}");
             csv.AppendLine($"Draft Proposals,{dashboardData.DraftProposalsCount}");
+            csv.AppendLine($"Sent Proposals,{dashboardData.SentProposalsCount}");
+            csv.AppendLine($"Approved Proposals,{dashboardData.ApprovedProposalsCount}");
+            csv.AppendLine($"Rejected Proposals,{dashboardData.RejectedProposalsCount}");
+            csv.AppendLine($"Cancelled Proposals,{dashboardData.CancelledProposalsCount}");
+            csv.AppendLine($"Total Proposals,{dashboardData.DraftProposalsCount + dashboardData.SentProposalsCount + dashboardData.ApprovedProposalsCount + dashboardData.RejectedProposalsCount + dashboardData.CancelledProposalsCount}");
             csv.AppendLine($"Total Revenue,{dashboardData.TotalRevenue:C}");
             csv.AppendLine();
             

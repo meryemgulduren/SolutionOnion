@@ -12,40 +12,42 @@ using System.Threading.Tasks;
 
 namespace SO.Application.Features.Commands.ProposalModule.Proposal.UpdateProposalSummary
 {
-    public class UpdateProposalSummaryCommandHandler : IRequestHandler<UpdateProposalSummaryCommandRequest, UpdateProposalSummaryCommandResponse>
-    {
-        private readonly IProposalService _proposalService;
+	public class UpdateProposalSummaryCommandHandler : IRequestHandler<UpdateProposalSummaryCommandRequest, UpdateProposalSummaryCommandResponse>
+	{
+		private readonly IProposalService _proposalService;
 
-        public UpdateProposalSummaryCommandHandler(IProposalService proposalService)
-        {
-            _proposalService = proposalService;
-        }
+		public UpdateProposalSummaryCommandHandler(IProposalService proposalService)
+		{
+			_proposalService = proposalService;
+		}
 
-        public async Task<UpdateProposalSummaryCommandResponse> Handle(UpdateProposalSummaryCommandRequest request, CancellationToken cancellationToken)
-        {
-            // Controller'dan gelen Request nesnesini, Service katmanının beklediği DTO'ya dönüştürüyoruz.
-            // DÜZELTME: DTO'nun tam yolunu (namespace) belirterek isim çakışmasını önlüyoruz.
-            await _proposalService.UpdateProposalSummaryAsync(new SO.Application.DTOs.ProposalModule.Proposal.UpdateProposalSummary
-            {
-                ProposalId = request.Id,
-                ProjectDescription = request.ProjectDescription,
-                // request'te kaldırılan alanlar silindi
-                OfferDurationDays = request.OfferDurationDays,
-                DeliveryDurationDays = request.DeliveryDurationDays,
-                OfferOwner = request.OfferOwner,
-                QuantityValue = request.QuantityValue,
-                QuantityUnit = request.QuantityUnit,
-                GeneralNote = request.GeneralNote,
-                AddressId = request.AddressId,
-                TargetPrice = request.TargetPrice,
-                PaymentMethod = request.PaymentMethod,
-                PaymentTerm = request.PaymentTerm,
-                ValidUntilDate = request.ValidUntilDate,
-                CommercialNote = request.CommercialNote
-            });
+		public async Task<UpdateProposalSummaryCommandResponse> Handle(UpdateProposalSummaryCommandRequest request, CancellationToken cancellationToken)
+		{
+			// Controller'dan gelen Request nesnesini, Service katmanının beklediği DTO'ya dönüştürüyoruz.
+			// DÜZELTME: DTO'nun tam yolunu (namespace) belirterek isim çakışmasını önlüyoruz.
+			await _proposalService.UpdateProposalSummaryAsync(new SO.Application.DTOs.ProposalModule.Proposal.UpdateProposalSummary
+			{
+				ProposalId = request.Id,
+				CurrentStep = request.CurrentStep,
+				NextStep = request.NextStep,
+				ProjectDescription = request.ProjectDescription,
+				// request'te kaldırılan alanlar silindi
+				OfferDurationDays = request.OfferDurationDays,
+				DeliveryDurationDays = request.DeliveryDurationDays,
+				OfferOwner = request.OfferOwner,
+				QuantityValue = request.QuantityValue,
+				QuantityUnit = request.QuantityUnit,
+				GeneralNote = request.GeneralNote,
+				AddressId = request.AddressId,
+				TargetPrice = request.TargetPrice,
+				PaymentMethod = request.PaymentMethod,
+				PaymentTerm = request.PaymentTerm,
+				ValidUntilDate = request.ValidUntilDate,
+				CommercialNote = request.CommercialNote
+			});
 
-            // İşlem tamamlandığında boş bir cevap döndürüyoruz.
-            return new();
-        }
-    }
+			// İşlem tamamlandığında boş bir cevap döndürüyoruz.
+			return new();
+		}
+	}
 }

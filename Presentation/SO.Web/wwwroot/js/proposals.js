@@ -41,21 +41,21 @@ class ProposalsManager {
         // Export to Word (button rendered only if authorized)
         $(document).on('click', '.export-proposal-btn', (e) => {
             e.preventDefault();
-            const id = $(e.target).data('id');
+            const id = $(e.currentTarget).data('id');
             this.exportToWord(id);
         });
 
         // View details buttons (works for all users)
         $(document).on('click', '.view-proposal-btn', (e) => {
             e.preventDefault();
-            const id = $(e.target).data('id');
+            const id = $(e.currentTarget).data('id');
             this.viewProposalDetails(id);
         });
 
         // Delete buttons (button rendered only if authorized)
         $(document).on('click', '.delete-proposal-btn', (e) => {
             e.preventDefault();
-            const id = $(e.target).data('id');
+            const id = $(e.currentTarget).data('id');
             this.showDeleteConfirmation(id);
         });
 
@@ -65,6 +65,16 @@ class ProposalsManager {
             if (id) {
                 window.location.href = `${this.baseUrl}/Edit/${id}`;
             }
+        });
+
+        // Status change handler
+        $(document).on('change', '.status-dropdown', (e) => {
+            const $dropdown = $(e.target);
+            const proposalId = $dropdown.data('proposal-id');
+            const newStatus = $dropdown.val();
+            const originalStatus = $dropdown.data('original-status');
+            
+            this.updateProposalStatus(proposalId, newStatus, $dropdown, originalStatus);
         });
     }
 
@@ -106,7 +116,8 @@ class ProposalsManager {
             // Search filter
             const matchesSearch = !searchTerm || 
                 proposal.proposalName.toLowerCase().includes(searchTerm) ||
-                proposal.companyName.toLowerCase().includes(searchTerm);
+                proposal.companyName.toLowerCase().includes(searchTerm) ||
+                (proposal.proposalCode && proposal.proposalCode.toLowerCase().includes(searchTerm));
 
             // Status filter
             const matchesStatus = !statusFilter || proposal.status === statusFilter;
@@ -176,6 +187,12 @@ class ProposalsManager {
                     <tr data-id="${proposal.id}" class="hover-lift">
                         <td>
                             <div class="d-flex align-items-center">
+                                <i class="fas fa-barcode text-muted me-2"></i>
+                                <code class="text-primary fw-bold">${proposal.proposalCode || 'N/A'}</code>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
                                 <i class="fas fa-file-contract text-primary me-2"></i>
                                 <strong>${this.escapeHtml(proposal.proposalName)}</strong>
                             </div>
@@ -204,30 +221,18 @@ class ProposalsManager {
                         <td>${statusBadge}</td>
                         <td class="text-center">
                             <div class="action-buttons">
-                                ${this.isAuthenticated ? `
-                                    <a href="${this.baseUrl}/Edit/${proposal.id}" class="btn btn-outline-primary btn-sm" 
-                                       title="Edit Proposal">
-                                        <i class="fas fa-edit"></i>
-                                    </a>
-                                    <button class="btn btn-outline-success btn-sm export-proposal-btn" 
-                                            data-id="${proposal.id}" title="Export to Word">
-                                        <i class="fas fa-file-word"></i>
-                                    </button>
-                                    <button class="btn btn-outline-danger btn-sm delete-proposal-btn" 
-                                            data-id="${proposal.id}" title="Delete Proposal">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                ` : `
-                                    <button class="btn btn-outline-info btn-sm view-proposal-btn" 
-                                            data-id="${proposal.id}" title="View Details">
-                                        <i class="fas fa-eye"></i>
-                                    </button>
-                                    <div class="mt-1">
-                                        <small class="text-muted">
-                                            <i class="fas fa-lock me-1"></i>Login required
-                                        </small>
-                                    </div>
-                                `}
+                                <a href="${this.baseUrl}/Edit/${proposal.id}" class="btn btn-outline-primary btn-sm" 
+                                   title="Düzenle">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                <button class="btn btn-outline-success btn-sm export-proposal-btn" 
+                                        data-id="${proposal.id}" title="Word'e Aktar">
+                                    <i class="fas fa-file-word"></i>
+                                </button>
+                                <button class="btn btn-outline-danger btn-sm delete-proposal-btn" 
+                                        data-id="${proposal.id}" title="Sil">
+                                    <i class="fas fa-trash"></i>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -286,12 +291,55 @@ class ProposalsManager {
         this.updatePagination(filteredCount);
     }
 
-    // Get status badge HTML
+    // Get status dropdown HTML
+    getStatusDropdown(proposalId, currentStatus) {
+        const statusClass = this.getStatusClass(currentStatus);
+        const statusOptions = [
+            { value: 1, label: 'Taslak', key: 'Draft' },
+            { value: 2, label: 'Gönderildi', key: 'Sent' },
+            { value: 3, label: 'Onaylandı', key: 'Approved' },
+            { value: 4, label: 'Reddedildi', key: 'Rejected' },
+            { value: 5, label: 'İptal Edildi', key: 'Cancelled' }
+        ];
+        
+        const options = statusOptions.map(opt => 
+            `<option value="${opt.value}" ${opt.key === currentStatus ? 'selected' : ''}>${opt.label}</option>`
+        ).join('');
+        
+        return `
+            <select class="form-select form-select-sm status-dropdown ${statusClass}" 
+                    data-proposal-id="${proposalId}" 
+                    data-original-status="${currentStatus}"
+                    style="min-width: 140px;">
+                ${options}
+            </select>
+        `;
+    }
+
+    // Get status badge HTML (for modal)
     getStatusBadge(status) {
         const statusClass = this.getStatusClass(status);
-        const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+        const statusText = this.getStatusText(status);
         
         return `<span class="status-badge ${statusClass}">${statusText}</span>`;
+    }
+
+    // Get status text in Turkish
+    getStatusText(status) {
+        const statusKey = typeof status === 'string' ? status : status.toString();
+        const statusMap = {
+            'Draft': 'Taslak',
+            'Sent': 'Gönderildi',
+            'Approved': 'Onaylandı',
+            'Rejected': 'Reddedildi',
+            'Cancelled': 'İptal Edildi',
+            '1': 'Taslak',
+            '2': 'Gönderildi',
+            '3': 'Onaylandı',
+            '4': 'Reddedildi',
+            '5': 'İptal Edildi'
+        };
+        return statusMap[statusKey] || statusKey;
     }
 
     // Get status CSS class
@@ -345,21 +393,102 @@ class ProposalsManager {
     // Delete proposal
     async deleteProposal(id) {
         try {
-            await $.ajax({
+            const token = $('input[name="__RequestVerificationToken"]').val();
+            
+            const response = await $.ajax({
                 url: `${this.baseUrl}/Delete/${id}`,
                 type: 'POST',
-                data: { id: id },
-                headers: {
-                    'RequestVerificationToken': $('input[name="__RequestVerificationToken"]').val()
-                }
-            }).catch(xhr => this.handleAjaxError(xhr));
+                data: { 
+                    id: id,
+                    __RequestVerificationToken: token
+                },
+                dataType: 'json'
+            });
 
             $('#deleteConfirmModal').modal('hide');
-            this.showAlert('Proposal deleted successfully!', 'success');
-            this.loadProposals();
+            
+            if (response.success) {
+                this.showAlert('Teklif başarıyla silindi!', 'success');
+                await this.loadProposals();
+            } else {
+                this.showAlert(response.message || 'Teklif silinirken hata oluştu', 'danger');
+            }
         } catch (error) {
-            this.showAlert('Error deleting proposal: ' + error.message, 'danger');
+            $('#deleteConfirmModal').modal('hide');
+            this.showAlert('Teklif silinirken hata oluştu: ' + (error.responseJSON?.message || error.message), 'danger');
         }
+    }
+
+    // Update proposal status
+    async updateProposalStatus(proposalId, newStatus, $dropdown, originalStatus) {
+        try {
+            // Show loading state
+            $dropdown.prop('disabled', true);
+            const originalHtml = $dropdown.html();
+            $dropdown.html('<option>Güncelleniyor...</option>');
+
+            const response = await $.ajax({
+                url: `${this.baseUrl}/UpdateProposalStatus`,
+                type: 'POST',
+                data: { 
+                    proposalId: proposalId, 
+                    status: newStatus 
+                },
+                dataType: 'json'
+            });
+
+            if (response.success) {
+                // Update the dropdown with new status class
+                const statusKey = this.getStatusKeyFromValue(newStatus);
+                const newClass = this.getStatusClass(statusKey);
+                
+                // Remove all status classes and add new one
+                $dropdown.removeClass('status-draft status-sent status-approved status-rejected status-cancelled');
+                $dropdown.addClass(newClass);
+                $dropdown.data('original-status', statusKey);
+                
+                this.showAlert('Durum başarıyla güncellendi!', 'success');
+                
+                // Reload to ensure data consistency
+                setTimeout(() => this.loadProposals(), 1000);
+            } else {
+                // Revert on error
+                $dropdown.html(originalHtml);
+                $dropdown.val(this.getStatusValueFromKey(originalStatus));
+                this.showAlert(response.message || 'Durum güncellenirken hata oluştu', 'danger');
+            }
+        } catch (error) {
+            // Revert on error
+            $dropdown.html(originalHtml);
+            $dropdown.val(this.getStatusValueFromKey(originalStatus));
+            this.showAlert('Durum güncellenirken hata oluştu: ' + error.message, 'danger');
+        } finally {
+            $dropdown.prop('disabled', false);
+        }
+    }
+
+    // Get status key from value
+    getStatusKeyFromValue(value) {
+        const statusMap = {
+            '1': 'Draft',
+            '2': 'Sent',
+            '3': 'Approved',
+            '4': 'Rejected',
+            '5': 'Cancelled'
+        };
+        return statusMap[value] || 'Draft';
+    }
+
+    // Get status value from key
+    getStatusValueFromKey(key) {
+        const statusMap = {
+            'Draft': 1,
+            'Sent': 2,
+            'Approved': 3,
+            'Rejected': 4,
+            'Cancelled': 5
+        };
+        return statusMap[key] || 1;
     }
 
     // Export to Word

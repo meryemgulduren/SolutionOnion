@@ -12,11 +12,15 @@ namespace SO.Domain.Entities.ProposalModule
     public class Proposal : BaseEntity
     {
         // Genel tanım alanları
+        public string ProposalCode { get; set; } = string.Empty; // Otomatik oluşturulan proje kodu (örn: PR.HDR.170922.01)
         public string ProposalName { get; set; } = string.Empty;
         public string PreparedBy { get; set; } = string.Empty;
         public ProposalStatus Status { get; set; } = ProposalStatus.Draft;
         public DateTime ProposalDate { get; set; }
         public string? ProjectDescription { get; set; }
+        
+        // Wizard step tracking
+        public int CurrentStep { get; set; } = 1; // 1: Genel Tanım, 2: Ticari, 3: Riskler
         
         // Proje detayları
         public int? OfferDurationDays { get; set; }
@@ -43,5 +47,6 @@ namespace SO.Domain.Entities.ProposalModule
         // Yeni tablo ilişkileri
         public virtual ICollection<CompetitionCompany> CompetitionCompanies { get; set; } = new List<CompetitionCompany>();
         public virtual ICollection<BusinessPartner> BusinessPartners { get; set; } = new List<BusinessPartner>();
+        public virtual ICollection<ProposalRisk> ProposalRisks { get; set; } = new List<ProposalRisk>();
     }
 }

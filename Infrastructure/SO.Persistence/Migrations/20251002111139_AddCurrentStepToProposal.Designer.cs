@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SO.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using SO.Persistence.Contexts;
 namespace SO.Persistence.Migrations
 {
     [DbContext(typeof(SODbContext))]
-    partial class SODbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002111139_AddCurrentStepToProposal")]
+    partial class AddCurrentStepToProposal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -607,10 +610,6 @@ namespace SO.Persistence.Migrations
                     b.Property<string>("ProjectDescription")
                         .HasColumnType("longtext");
 
-                    b.Property<string>("ProposalCode")
-                        .IsRequired()
-                        .HasColumnType("longtext");
-
                     b.Property<DateTime>("ProposalDate")
                         .HasColumnType("datetime(6)");
 
@@ -822,7 +821,7 @@ namespace SO.Persistence.Migrations
             modelBuilder.Entity("SO.Domain.Entities.ProposalModule.ProposalRisk", b =>
                 {
                     b.HasOne("SO.Domain.Entities.ProposalModule.Proposal", "Proposal")
-                        .WithMany("ProposalRisks")
+                        .WithMany("Risks")
                         .HasForeignKey("ProposalId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -855,7 +854,7 @@ namespace SO.Persistence.Migrations
 
                     b.Navigation("CompetitionCompanies");
 
-                    b.Navigation("ProposalRisks");
+                    b.Navigation("Risks");
                 });
 #pragma warning restore 612, 618
         }

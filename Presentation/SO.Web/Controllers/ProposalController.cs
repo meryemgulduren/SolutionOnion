@@ -24,6 +24,8 @@ using SO.Application.DTOs.ProposalModule.CompetitionCompany;
 using SO.Application.DTOs.ProposalModule.BusinessPartner;
 using SO.Application.Repositories;
 using SO.Application.Abstractions.Services.ProposalModule;
+using System.Text.Json;
+using Microsoft.EntityFrameworkCore;
 
 namespace SO.Web.Controllers
 {
@@ -36,6 +38,7 @@ namespace SO.Web.Controllers
         private readonly AuthService _authorizationService;
         private readonly IBusinessPartnerService _businessPartnerService;
         private readonly ICompetitionCompanyService _competitionCompanyService;
+        private readonly IProposalRiskService _proposalRiskService;
         private readonly IAppAuthorizationService _appAuthorization;
 
         public ProposalsController(
@@ -46,6 +49,7 @@ namespace SO.Web.Controllers
             AuthService authorizationService,
             IBusinessPartnerService businessPartnerService,
             ICompetitionCompanyService competitionCompanyService,
+            IProposalRiskService proposalRiskService,
             IAppAuthorizationService appAuthorization)
         {
             _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
@@ -55,6 +59,7 @@ namespace SO.Web.Controllers
             _authorizationService = authorizationService ?? throw new ArgumentNullException(nameof(authorizationService));
             _businessPartnerService = businessPartnerService ?? throw new ArgumentNullException(nameof(businessPartnerService));
             _competitionCompanyService = competitionCompanyService ?? throw new ArgumentNullException(nameof(competitionCompanyService));
+            _proposalRiskService = proposalRiskService ?? throw new ArgumentNullException(nameof(proposalRiskService));
             _appAuthorization = appAuthorization ?? throw new ArgumentNullException(nameof(appAuthorization));
         }
 
@@ -143,6 +148,7 @@ namespace SO.Web.Controllers
                 var result = proposals?.Select(p => new
                 {
                     id = p.Id,
+                    proposalCode = p.ProposalCode,
                     proposalName = p.ProposalName,
                     companyName = p.CompanyName,
                     proposalDate = p.ProposalDate,
@@ -358,6 +364,11 @@ namespace SO.Web.Controllers
                 var form = await Request.ReadFormAsync();
                 
                 request.Id = id;
+                
+                // Step bilgilerini al
+                request.CurrentStep = int.TryParse(form["CurrentStep"], out var currentStep) ? currentStep : 1;
+                request.NextStep = int.TryParse(form["NextStep"], out var nextStep) ? nextStep : 1;
+                
                 request.ProjectDescription = form["ProjectDescription"].ToString();
                 // Gün sayıları için esnek parsing
                 var offerDaysStr = form["OfferDurationDays"].ToString().Replace(",", ".").Replace(" ", "");
@@ -386,9 +397,18 @@ namespace SO.Web.Controllers
 
                 if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
                 {
+                    // Mesajı adıma göre belirle
+                    string successMessage = request.CurrentStep switch
+                    {
+                        1 => "Genel tanım bilgileri başarıyla kaydedildi!",
+                        2 => "Ticari bilgiler başarıyla kaydedildi!",
+                        3 => "Riskler başarıyla kaydedildi!",
+                        _ => "Bilgiler başarıyla kaydedildi!"
+                    };
+                    
                     return Json(new { 
                         success = true, 
-                        message = "Ticari bilgiler başarıyla kaydedildi!"
+                        message = successMessage
                     });
                 }
                 
@@ -400,17 +420,13 @@ namespace SO.Web.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating proposal summary: {ProposalId}", id);
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-                {
-                    return Json(new { success = false, message = "Bir hata oluştu: " + ex.Message });
-                }
-                return RedirectToAction(nameof(Edit), new { id = id });
+                _logger.LogError(ex, "Error updating summary: {ProposalId}", id);
+                return View("Error");
             }
         }
 
         [HttpGet]
-        [RequirePermission(Permission.Proposals_Export)]
+        [RequirePermission(Permission.Proposals_ReadOwn)]
         public async Task<IActionResult> ExportToWord(string id)
         {
             if (string.IsNullOrEmpty(id))
@@ -579,6 +595,117 @@ namespace SO.Web.Controllers
                 return Json(new { success = false, message = "An error occurred while deleting the business partner" });
             }
         }
+
+        #region Proposal Status Management
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateProposalStatus(string proposalId, int status)
+        {
+            if (string.IsNullOrEmpty(proposalId) || !Guid.TryParse(proposalId, out Guid id))
+            {
+                return Json(new { success = false, message = "Invalid proposal ID" });
+            }
+
+            try
+            {
+                var proposal = await _mediator.Send(new GetByIdProposalQueryRequest { Id = proposalId });
+                
+                if (proposal?.Result == null)
+                {
+                    return Json(new { success = false, message = "Proposal not found" });
+                }
+
+                // Update status using MediatR command
+                var updateRequest = new UpdateProposalSummaryCommandRequest
+                {
+                    Id = proposalId,
+                    CurrentStep = (proposal.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal)?.CurrentStep ?? 1,
+                    NextStep = (proposal.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal)?.CurrentStep ?? 1
+                };
+
+                // Get the proposal from write repository to update status directly
+                var writeRepo = HttpContext.RequestServices.GetService<IWriteRepository<SO.Domain.Entities.ProposalModule.Proposal>>();
+                var proposalEntity = await writeRepo.Table.FirstOrDefaultAsync(p => p.Id == id);
+                
+                if (proposalEntity != null)
+                {
+                    proposalEntity.Status = (SO.Domain.Enums.ProposalStatus)status;
+                    proposalEntity.ModifiedDate = DateTime.UtcNow;
+                    writeRepo.Update(proposalEntity);
+                    await writeRepo.SaveAsync();
+                    
+                    return Json(new { success = true, message = "Status updated successfully" });
+                }
+                
+                return Json(new { success = false, message = "Failed to update status" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating proposal status: {ProposalId}", proposalId);
+                return Json(new { success = false, message = "An error occurred while updating status" });
+            }
+        }
+
+        #endregion
+
+        #region Proposal Risk Management
+
+        [HttpGet]
+        public async Task<IActionResult> GetProposalRisks(Guid proposalId)
+        {
+            try
+            {
+                var risks = await _proposalRiskService.GetRisksByProposalIdAsync(proposalId);
+                return Json(risks);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting proposal risks: {ProposalId}", proposalId);
+                return Json(new List<object>());
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveProposalRisks([FromBody] Application.DTOs.ProposalModule.ProposalRisk.ProposalRiskDto[] risks)
+        {
+            try
+            {
+                foreach (var risk in risks)
+                {
+                    if (risk.Id.HasValue && risk.Id.Value != Guid.Empty)
+                    {
+                        await _proposalRiskService.UpdateRiskAsync(risk);
+                    }
+                    else
+                    {
+                        await _proposalRiskService.CreateRiskAsync(risk);
+                    }
+                }
+                return Json(new { success = true, message = "Risks saved successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving proposal risks");
+                return Json(new { success = false, message = "An error occurred while saving risks" });
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> InitializeProposalRisks(Guid proposalId)
+        {
+            try
+            {
+                await _proposalRiskService.InitializeDefaultRisksAsync(proposalId);
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error initializing proposal risks: {ProposalId}", proposalId);
+                return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        #endregion
 
     }
 }

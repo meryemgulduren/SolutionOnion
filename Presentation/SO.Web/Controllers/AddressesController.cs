@@ -197,6 +197,7 @@ namespace SO.Web.Controllers
                 {
                     id = a.Id,
                     accountId = a.AccountId,
+                    companyName = a.CompanyName,
                     addressName = a.AddressName,
                     addressType = a.AddressType,
                     addressLine1 = a.AddressLine1,

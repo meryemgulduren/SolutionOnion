@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SO.Persistence.Contexts;
 
@@ -10,9 +11,11 @@ using SO.Persistence.Contexts;
 namespace SO.Persistence.Migrations
 {
     [DbContext(typeof(SODbContext))]
-    partial class SODbContextModelSnapshot : ModelSnapshot
+    [Migration("20251002153533_AddProposalCodeToProposal")]
+    partial class AddProposalCodeToProposal
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

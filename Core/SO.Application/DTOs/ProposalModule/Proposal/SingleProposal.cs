@@ -10,6 +10,7 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
     {
         public Guid Id { get; set; }
         public Guid AccountId { get; set; }
+        public string ProposalCode { get; set; }
         public string ProposalName { get; set; }
         public string CompanyName { get; set; }
         public string PreparedBy { get; set; }
@@ -19,6 +20,9 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
         public string Currency { get; set; }
         public string? Description { get; set; }
         public string? CreatedById { get; set; }
+        
+        // Wizard step tracking
+        public int CurrentStep { get; set; } = 1;
        
         public string? ProjectDescription { get; set; }
         public int? OfferDurationDays { get; set; }
@@ -45,7 +49,6 @@ namespace SO.Application.DTOs.ProposalModule.Proposal
         public DateTime? UpdatedDate { get; set; }
         public List<ListCommercialCompetitor> Competitors { get; set; }
         public List<ListCommercialPartner> Partners { get; set; }
-
     }
 
     public class ListCommercialCompetitor

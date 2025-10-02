@@ -6,6 +6,7 @@ using SO.Domain.Entities.Common;
 using SO.Domain.Entities.Identity;
 using Microsoft.AspNetCore.Server.IISIntegration;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
@@ -117,7 +118,9 @@ namespace SO.Persistence.Services.AccountModule
 
         public async Task<List<ListAddress>> GetAllAddressesAsync()
         {
-            var addresses = _addressReadRepository.GetAll(false).ToList();
+            var addresses = _addressReadRepository.GetAll(false)
+                .Include(a => a.Account)
+                .ToList();
             System.Diagnostics.Debug.WriteLine($"AddressService: Found {addresses.Count} addresses in database");
             
             var result = new List<ListAddress>();
@@ -149,14 +152,14 @@ namespace SO.Persistence.Services.AccountModule
                     Zip = address.Zip,
                     PostalCode = address.Zip, // JavaScript için alias
                     Phone = address.Phone,
-                    Fax = address.Fax, // ✅ FAX ALANI EKLENDİ
-                    Mail = address.Mail, // ✅ MAIL ALANI EKLENDİ
+                    Fax = address.Fax,
+                    Mail = address.Mail,
                     isDefault = address.isDefault,
                     Active = address.Active,
                     CreatedById = address.CreatedById,
                     CreatedBy = createdBy,
                     CreatedDate = address.CreatedDate,
-                    CompanyName = "Unknown Company" // TODO: Account ile ilişkilendir
+                    CompanyName = address.Account?.CompanyName ?? "Unknown Company"
                 });
             }
             

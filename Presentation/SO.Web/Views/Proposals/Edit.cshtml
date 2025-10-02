@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Edit Proposal";
     var proposal = Model.Result as SO.Application.DTOs.ProposalModule.Proposal.SingleProposal;
+    var currentStep = proposal.CurrentStep;
 }
 
 <div class="container-fluid">
@@ -16,28 +17,95 @@
         </div>
     }
 
-    <!-- Modern Header -->
+    <!-- Modern Header with Step Progress -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm">
                 <div class="card-body p-4">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <h1 class="h3 mb-2 text-dark">Teklifi Düzenle</h1>
-                            <h2 class="h5 text-primary mb-3">@proposal.ProposalName</h2>
-                            <div class="d-flex align-items-center gap-3">
-                                <span class="badge bg-light text-dark border">
-                                    <i class="fas fa-building me-1"></i>@proposal.CompanyName
-                                </span>
-                                <span class="badge bg-info text-white">
-                                    <i class="fas fa-info-circle me-1"></i>@proposal.Status
-                                </span>
+                    <!-- Header Section -->
+                    <div class="proposal-header">
+                        <div class="header-top">
+                            <div class="header-left">
+                                <div class="page-title-wrapper">
+                                    <div>
+                                        <h1 class="page-title">Teklifi Düzenle</h1>
+                                        <div class="project-name-section">
+                                            <span class="project-label">Proje Adı:</span>
+                                            <span class="project-name">@proposal.ProposalName</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="header-right">
+                                <a asp-action="ExportToWord" asp-route-id="@proposal.Id" class="btn btn-success btn-lg">
+                                    <i class="fas fa-file-word me-2"></i>Word'e Aktar
+                                </a>
                             </div>
                         </div>
-                        <div>
-                            <a asp-action="ExportToWord" asp-route-id="@proposal.Id" class="btn btn-success btn-lg px-4">
-                                <i class="fas fa-file-word me-2"></i>Word Olarak İndir
-                            </a>
+                        
+                        <div class="header-meta">
+                            <div class="meta-item">
+                                <span class="meta-label">Proje Kodu</span>
+                                <span class="meta-value"><i class="fas fa-barcode me-1"></i>@proposal.ProposalCode</span>
+                            </div>
+                            <div class="meta-divider"></div>
+                            <div class="meta-item">
+                                <span class="meta-label">Müşteri Firması</span>
+                                <span class="meta-value"><i class="fas fa-building me-1"></i>@proposal.CompanyName</span>
+                            </div>
+                            <div class="meta-divider"></div>
+                            <div class="meta-item meta-status">
+                                <span class="meta-label">Proje Durumu</span>
+                                <select id="proposalStatusDropdown" class="status-select" 
+                                        data-proposal-id="@proposal.Id"
+                                        data-current-status="@proposal.Status">
+                                    <option value="1">📋 Taslak</option>
+                                    <option value="2">📨 Gönderildi</option>
+                                    <option value="3">✅ Onaylandı</option>
+                                    <option value="4">❌ Reddedildi</option>
+                                    <option value="5">⛔ İptal Edildi</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Step Progress Indicator -->
+                    <div class="progress-container mt-4">
+                        <div class="d-flex justify-content-between align-items-center position-relative">
+                            <div class="progress-line"></div>
+                            <!-- Step 1 -->
+                            <div class="step-item @(currentStep >= 1 ? "completed" : "")">
+                                <div class="step-circle @(currentStep >= 1 ? "bg-success" : "bg-secondary")">
+                                    @if (currentStep > 1) {
+                                        <i class="fas fa-check text-white"></i>
+                                    } else {
+                                        <span class="text-white">1</span>
+                                    }
+                                </div>
+                                <div class="step-label">Genel Tanım</div>
+                            </div>
+                            <!-- Step 2 -->
+                            <div class="step-item @(currentStep >= 2 ? "completed" : "")">
+                                <div class="step-circle @(currentStep >= 2 ? "bg-success" : "bg-secondary")">
+                                    @if (currentStep > 2) {
+                                        <i class="fas fa-check text-white"></i>
+                                    } else {
+                                        <span class="text-white">2</span>
+                                    }
+                                </div>
+                                <div class="step-label">Ticari Bilgiler</div>
+                            </div>
+                            <!-- Step 3 -->
+                            <div class="step-item @(currentStep >= 3 ? "completed" : "")">
+                                <div class="step-circle @(currentStep >= 3 ? "bg-success" : "bg-secondary")">
+                                    @if (currentStep > 3) {
+                                        <i class="fas fa-check text-white"></i>
+                                    } else {
+                                        <span class="text-white">3</span>
+                                    }
+                                </div>
+                                <div class="step-label">Riskler</div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -52,20 +120,36 @@
                 <!-- 1. Genel Tanım -->
                 <div class="accordion-item border-0 shadow-sm mb-3">
                     <h2 class="accordion-header" id="headingGeneral">
-                        <button class="accordion-button collapsed bg-white text-dark border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseGeneral" aria-expanded="false" aria-controls="collapseGeneral">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-primary me-3 px-3 py-2" id="badgeGeneral">1</span>
+                        <button class="accordion-button @(currentStep != 1 ? "collapsed" : "") bg-white text-dark border-0 shadow-sm" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapseGeneral" 
+                                aria-expanded="@(currentStep == 1 ? "true" : "false")" 
+                                aria-controls="collapseGeneral">
+                            <div class="d-flex align-items-center w-100">
+                                <span class="badge @(currentStep >= 2 ? "bg-success" : "bg-primary") me-3 px-3 py-2">
+                                    @if (currentStep > 1) {
+                                        <i class="fas fa-check"></i>
+                                    } else {
+                                        <text>1</text>
+                                    }
+                                </span>
                                 <div>
                                     <h5 class="mb-0">Genel Tanım</h5>
                                     <small class="text-muted">Proje bilgileri ve müşteri detayları</small>
                                 </div>
+                                @if (currentStep > 1) {
+                                    <span class="badge bg-success ms-auto">✓ Tamamlandı - Düzenlenebilir</span>
+                                }
                             </div>
                         </button>
                     </h2>
-                        <div id="collapseGeneral" class="accordion-collapse collapse" aria-labelledby="headingGeneral" data-bs-parent="#proposalAccordion">
+                    <div id="collapseGeneral" class="accordion-collapse collapse @(currentStep == 1 ? "show" : "")" aria-labelledby="headingGeneral" data-bs-parent="#proposalAccordion">
                         <div class="accordion-body bg-light">
                             <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post" id="generalForm">
                                 @Html.AntiForgeryToken()
+                                <input type="hidden" name="CurrentStep" value="1" />
+                                <input type="hidden" name="NextStep" value="@(currentStep == 1 ? 2 : currentStep)" />
                                 
                                 <!-- Proje Bilgileri -->
                                 <div class="card mb-4">
@@ -87,7 +171,12 @@
                                             <!-- 1.3 Proje Kapsamı -->
                                             <div class="col-12">
                                                 <label class="form-label fw-bold">Proje Kapsamı <span class="text-danger">*</span></label>
-                                                <textarea name="ProjectDescription" class="form-control" rows="4" required placeholder="Proje kapsamını detaylı olarak açıklayın...">@proposal.ProjectDescription</textarea>
+                                                <div class="position-relative">
+                                                    <textarea name="ProjectDescription" id="projectDescription" class="form-control smart-textarea" rows="4" maxlength="1000" required placeholder="Proje kapsamını detaylı olarak açıklayın... (Maksimum 1000 karakter)">@proposal.ProjectDescription</textarea>
+                                                    <small class="text-muted position-absolute char-counter" style="bottom: 5px; right: 10px; font-size: 0.75rem;">
+                                                        <span class="char-count">@(proposal.ProjectDescription?.Length ?? 0)</span>/1000
+                                                    </small>
+                                                </div>
                                             </div>
                                             <!-- 1.4 Proje Sorumlusu (Hazırlayan) -->
                                             <div class="col-md-6">
@@ -169,15 +258,33 @@
                                                     <input name="QuantityValue" type="text" class="form-control" value="@proposal.QuantityValue" placeholder="Miktar (örn: 100 veya 100.5)" required />
                                                     <select id="quantityUnit" name="QuantityUnit" class="form-select" required>
                                                         <option value="">Birim seçin</option>
-                                                        <option value="Birim">Birim</option>
-                                                        <option value="Adet">Adet</option>
+                                                        @if (proposal.QuantityUnit == "Birim")
+                                                        {
+                                                            <option value="Birim" selected>Birim</option>
+                                                            <option value="Adet">Adet</option>
+                                                        }
+                                                        else if (proposal.QuantityUnit == "Adet")
+                                                        {
+                                                            <option value="Birim">Birim</option>
+                                                            <option value="Adet" selected>Adet</option>
+                                                        }
+                                                        else
+                                                        {
+                                                            <option value="Birim">Birim</option>
+                                                            <option value="Adet">Adet</option>
+                                                        }
                                                     </select>
                                                 </div>
                                             </div>
                                             <!-- 1.15 Not -->
                                             <div class="col-12">
                                                 <label class="form-label fw-bold">Not</label>
-                                                <textarea name="GeneralNote" class="form-control" rows="3" placeholder="Ek notlar...">@proposal.GeneralNote</textarea>
+                                                <div class="position-relative">
+                                                    <textarea name="GeneralNote" id="generalNote" class="form-control smart-textarea" rows="3" maxlength="500" placeholder="Ek notlar... (Maksimum 500 karakter)">@proposal.GeneralNote</textarea>
+                                                    <small class="text-muted position-absolute char-counter" style="bottom: 5px; right: 10px; font-size: 0.75rem;">
+                                                        <span class="char-count">@(proposal.GeneralNote?.Length ?? 0)</span>/500
+                                                    </small>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -186,10 +293,24 @@
                                 <!-- Form Actions -->
                                 <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-white rounded shadow-sm">
                                     <div class="text-muted">
-                                        <small><i class="fas fa-info-circle me-1"></i>Bilgileriniz otomatik olarak kaydedilecek ve bir sonraki adıma geçilecektir.</small>
+                                        @if (currentStep == 1)
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Bilgileriniz kaydedilecek ve 2. adıma geçilecektir.</small>
+                                        }
+                                        else
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Değişiklikleriniz kaydedilecektir.</small>
+                                        }
                                     </div>
                                     <button type="submit" class="btn btn-primary btn-lg px-4">
-                                        <i class="fas fa-save me-2"></i>Kaydet ve Devam Et
+                                        @if (currentStep == 1)
+                                        {
+                                            <i class="fas fa-arrow-right me-2"></i><text>Kaydet ve 2. Adıma Geç</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-save me-2"></i><text>Kaydet</text>
+                                        }
                                     </button>
                                 </div>
                             </form>
@@ -200,21 +321,40 @@
                 <!-- 2. Ticari -->
                 <div class="accordion-item border-0 shadow-sm mb-3">
                     <h2 class="accordion-header" id="headingCommercial">
-                        <button class="accordion-button collapsed bg-white text-dark border-0 shadow-sm" type="button" data-bs-toggle="collapse" data-bs-target="#collapseCommercial" aria-expanded="false" aria-controls="collapseCommercial">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-success me-3 px-3 py-2" id="badgeCommercial">2</span>
+                        <button class="accordion-button @(currentStep != 2 ? "collapsed" : "") bg-white text-dark border-0 shadow-sm @(currentStep < 2 ? "disabled" : "")" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapseCommercial" 
+                                aria-expanded="@(currentStep == 2 ? "true" : "false")" 
+                                aria-controls="collapseCommercial"
+                                @(currentStep < 2 ? "disabled" : "")>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="badge @(currentStep >= 3 ? "bg-success" : (currentStep >= 2 ? "bg-primary" : "bg-secondary")) me-3 px-3 py-2">
+                                    @if (currentStep > 2) {
+                                        <i class="fas fa-check"></i>
+                                    } else {
+                                        <text>2</text>
+                                    }
+                                </span>
                                 <div>
                                     <h5 class="mb-0">Ticari Bilgiler</h5>
                                     <small class="text-muted">Fiyat, ödeme ve rekabet bilgileri</small>
                                 </div>
+                                @if (currentStep < 2) {
+                                    <span class="badge bg-secondary ms-auto"><i class="fas fa-lock me-1"></i>1. Adımı Tamamlayın</span>
+                                } else if (currentStep > 2) {
+                                    <span class="badge bg-success ms-auto">✓ Tamamlandı - Düzenlenebilir</span>
+                                }
                             </div>
                         </button>
                     </h2>
-                    <div id="collapseCommercial" class="accordion-collapse collapse" aria-labelledby="headingCommercial" data-bs-parent="#proposalAccordion">
+                    <div id="collapseCommercial" class="accordion-collapse collapse @(currentStep == 2 ? "show" : "")" aria-labelledby="headingCommercial" data-bs-parent="#proposalAccordion">
                         <div class="accordion-body bg-light">
                             <form asp-action="UpdateSummary" asp-route-id="@proposal.Id" method="post" id="commercialForm">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="Id" value="@proposal.Id" />
+                                <input type="hidden" name="CurrentStep" value="2" />
+                                <input type="hidden" name="NextStep" value="@(currentStep == 2 ? 3 : currentStep)" />
 
                                 <!-- Fiyat ve Ödeme Bilgileri -->
                                 <div class="card mb-4">
@@ -316,17 +456,120 @@
                                         <h6 class="mb-0"><i class="fas fa-sticky-note me-2"></i>Notlar</h6>
                                     </div>
                                     <div class="card-body">
-                                        <textarea name="CommercialNote" class="form-control" rows="3" placeholder="Ticari notlarınızı buraya yazın...">@proposal.CommercialNote</textarea>
+                                        <div class="position-relative">
+                                            <textarea name="CommercialNote" id="commercialNote" class="form-control smart-textarea" rows="3" maxlength="500" placeholder="Ticari notlarınızı buraya yazın... (Maksimum 500 karakter)">@proposal.CommercialNote</textarea>
+                                            <small class="text-muted position-absolute char-counter" style="bottom: 5px; right: 10px; font-size: 0.75rem;">
+                                                <span class="char-count">@(proposal.CommercialNote?.Length ?? 0)</span>/500
+                                            </small>
+                                        </div>
                                     </div>
                                 </div>
 
                                 <!-- Form Actions -->
                                 <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-white rounded shadow-sm">
                                     <div class="text-muted">
-                                        <small><i class="fas fa-info-circle me-1"></i>Ticari bilgileriniz kaydedilecektir.</small>
+                                        @if (currentStep == 2)
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Ticari bilgileriniz kaydedilecek ve 3. adıma geçilecektir.</small>
+                                        }
+                                        else
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Değişiklikleriniz kaydedilecektir.</small>
+                                        }
                                     </div>
                                     <button type="submit" class="btn btn-success btn-lg px-4">
-                                        <i class="fas fa-save me-2"></i>Kaydet
+                                        @if (currentStep == 2)
+                                        {
+                                            <i class="fas fa-arrow-right me-2"></i><text>Kaydet ve 3. Adıma Geç</text>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas fa-save me-2"></i><text>Kaydet</text>
+                                        }
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Riskler / Varsayımlar -->
+                <div class="accordion-item border-0 shadow-sm mb-3">
+                    <h2 class="accordion-header" id="headingRisks">
+                        <button class="accordion-button @(currentStep != 3 ? "collapsed" : "") bg-white text-dark border-0 shadow-sm @(currentStep < 3 ? "disabled" : "")" 
+                                type="button" 
+                                data-bs-toggle="collapse" 
+                                data-bs-target="#collapseRisks" 
+                                aria-expanded="@(currentStep == 3 ? "true" : "false")" 
+                                aria-controls="collapseRisks"
+                                @(currentStep < 3 ? "disabled" : "")>
+                            <div class="d-flex align-items-center w-100">
+                                <span class="badge @(currentStep >= 4 ? "bg-success" : (currentStep >= 3 ? "bg-primary" : "bg-secondary")) me-3 px-3 py-2">
+                                    @if (currentStep > 3) {
+                                        <i class="fas fa-check"></i>
+                                    } else {
+                                        <text>3</text>
+                                    }
+                                </span>
+                                <div>
+                                    <h5 class="mb-0">Riskler / Varsayımlar</h5>
+                                    <small class="text-muted">Proje risk faktörleri ve açıklamaları</small>
+                                </div>
+                                @if (currentStep < 3) {
+                                    <span class="badge bg-secondary ms-auto"><i class="fas fa-lock me-1"></i>2. Adımı Tamamlayın</span>
+                                } else if (currentStep > 3) {
+                                    <span class="badge bg-success ms-auto">✓ Tamamlandı - Düzenlenebilir</span>
+                                }
+                            </div>
+                        </button>
+                    </h2>
+                    <div id="collapseRisks" class="accordion-collapse collapse @(currentStep == 3 ? "show" : "")" aria-labelledby="headingRisks" data-bs-parent="#proposalAccordion">
+                        <div class="accordion-body bg-light">
+                            <form id="risksForm">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="ProposalId" value="@proposal.Id" />
+                                
+                                <!-- Riskler Tablosu -->
+                                <div class="card mb-4">
+                                    <div class="card-header bg-danger text-white">
+                                        <h6 class="mb-0"><i class="fas fa-exclamation-triangle me-2"></i>Risk Faktörleri</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="table-responsive">
+                                            <table class="table table-hover" id="risksTable">
+                                                <thead class="table-light">
+                                                    <tr>
+                                                        <th width="30">#</th>
+                                                        <th width="200">Risk Faktörü</th>
+                                                        <th>Açıklama</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody id="risksBody">
+                                                    <!-- Dinamik olarak eklenecek -->
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <div class="alert alert-info mt-3">
+                                            <i class="fas fa-info-circle me-2"></i>
+                                            <strong>Not:</strong> Risk başlıkları sistem tarafından önceden tanımlanmıştır. Sadece açıklama alanlarını doldurunuz.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Form Actions -->
+                                <div class="d-flex justify-content-between align-items-center mt-4 p-3 bg-white rounded shadow-sm">
+                                    <div class="text-muted">
+                                        @if (currentStep == 3)
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Risk bilgileriniz kaydedilecektir.</small>
+                                        }
+                                        else
+                                        {
+                                            <small><i class="fas fa-info-circle me-1"></i>Değişiklikleriniz kaydedilecektir.</small>
+                                        }
+                                    </div>
+                                    <button type="submit" class="btn btn-danger btn-lg px-4">
+                                        <i class="fas fa-save me-2"></i>Riskleri Kaydet
                                     </button>
                                 </div>
                             </form>
@@ -341,19 +584,6 @@
 @section Scripts {
     <script>
         $(document).ready(function () {
-            // İlk açılış: her iki panel kapalı, sadece Genel Tanım tıklanabilir ve yeşil görünsün
-            var urlParams = new URLSearchParams(window.location.search);
-            var open = urlParams.get('open');
-            if (open === 'commercial') {
-                $('#badgeCommercial').addClass('bg-success text-white');
-                $('#badgeGeneral').removeClass('bg-success text-white');
-            } else {
-                $('#badgeGeneral').addClass('bg-success text-white');
-                $('#badgeCommercial').removeClass('bg-success text-white');
-                // Ticari başlığını devre dışı bırak (sadece görsel/tıklanmasın)
-                $('#headingCommercial .accordion-button').addClass('disabled');
-            }
-
             // Firma seçildiğinde müşteri ve adres bilgilerini doldur
             const accountId = '@proposal.AccountId';
             if (accountId) {
@@ -395,7 +625,7 @@
             }
 
 
-            // Genel Tanım AJAX kaydet → sayfayı ticari adımı vurgulu olacak şekilde yenile
+            // Genel Tanım AJAX kaydet → Adım 2'ye geç
             $('#generalForm').on('submit', function (e) {
                 e.preventDefault();
                 var form = $(this);
@@ -442,7 +672,7 @@
                 }
                 
                 if (!isValid) {
-                    alert('Lütfen aşağıdaki hataları düzeltin:\n\n' + errorMessage);
+                    showValidationError(errorMessage);
                     return false;
                 }
                 
@@ -459,7 +689,7 @@
                 var data = form.serialize();
                 var btn = form.find('button[type="submit"]');
                 var original = btn.html();
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor');
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...');
                 $.ajax({
                     url: form.attr('action'),
                     type: 'POST',
@@ -467,18 +697,25 @@
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function (res) {
                         btn.prop('disabled', false).html(original);
-                        // Yeniden yönlendir: ticari adımı vurgula, paneller kapalı kalsın
-                        var newUrl = window.location.pathname + '?id=@proposal.Id&open=commercial';
-                        window.location.href = newUrl;
+                        var currentPageStep = @currentStep;
+                        if (currentPageStep == 1) {
+                            showSuccessMessage('Genel tanım bilgileri kaydedildi! 2. adıma geçiliyor...');
+                        } else {
+                            showSuccessMessage('Genel tanım bilgileri güncellendi!');
+                        }
+                        // Sayfayı yenile
+                        setTimeout(function() {
+                            window.location.reload();
+                        }, 1500);
                     },
                     error: function () {
                         btn.prop('disabled', false).html(original);
-                        alert('Kaydetme sırasında bir hata oluştu.');
+                        showValidationError('Kaydetme sırasında bir hata oluştu.');
                     }
                 });
             });
 
-            // Ticari (2. adım) kaydet → AJAX ile gönder
+            // Ticari (2. adım) kaydet → Adım 3'e geç
             $('#commercialForm').on('submit', function (e) {
                 e.preventDefault();
                 
@@ -517,14 +754,14 @@
                 }
 
                 if (!isValid) {
-                    alert('Lütfen tüm zorunlu alanları doldurun:\n\n' + errorMessage);
+                    showValidationError(errorMessage);
                     return false;
                 }
 
                 // Loading göster
                 var btn = $(this).find('button[type="submit"]');
                 var original = btn.html();
-                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor');
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...');
                 
                 
                 // Form'daki virgülleri noktaya çevir - sadece sayısal alanlar için
@@ -533,30 +770,12 @@
                     var value = $this.val();
                     if (value && value.includes(',')) {
                         $this.val(value.replace(',', '.'));
-                        console.log('Converted comma to dot:', value, '->', $this.val());
                     }
                 });
-                
-                // forma 'from=commercial' bilgisi ekle; controller bu değeri redirect query olarak dönecek
-                if ($('#fromCommercialHidden').length === 0) {
-                    $('<input>').attr({ id: 'fromCommercialHidden', type: 'hidden', name: 'from', value: 'commercial' }).appendTo('#commercialForm');
-                }
                 
                 // AJAX ile form gönder
                 var form = $(this);
                 var data = form.serialize();
-                
-                // Debug: Form verilerini detaylı kontrol et
-                console.log('=== FORM SUBMIT DEBUG ===');
-                console.log('Form action:', form.attr('action'));
-                console.log('Serialized data:', data);
-                
-                // Form'daki tüm input'ları listele
-                form.find('input, textarea, select').each(function() {
-                    var $this = $(this);
-                    console.log('Form field:', $this.attr('name'), '=', $this.val());
-                });
-                
                 
                 $.ajax({
                     url: form.attr('action'),
@@ -564,22 +783,17 @@
                     data: data,
                     headers: { 'X-Requested-With': 'XMLHttpRequest' },
                     success: function (res) {
-                        console.log('AJAX Success Response:', res);
                         if (res.success) {
                             // Ana form başarıyla kaydedildi, şimdi tablo verilerini kaydet
-                            console.log('Main form saved successfully, now saving table data...');
                             saveTableData(btn, original);
                         } else {
                             btn.prop('disabled', false).html(original);
-                            alert('Kaydetme sırasında bir hata oluştu: ' + (res.message || 'Bilinmeyen hata'));
+                            showValidationError(res.message || 'Bilinmeyen hata');
                         }
                     },
                     error: function (xhr, status, error) {
                         btn.prop('disabled', false).html(original);
-                        console.error('AJAX Error:', xhr.responseText);
-                        console.error('Status:', status);
-                        console.error('Error:', error);
-                        alert('Kaydetme sırasında bir hata oluştu: ' + error);
+                        showValidationError('Kaydetme sırasında bir hata oluştu: ' + error);
                     }
                 });
             });
@@ -587,23 +801,27 @@
             // Tablo verilerini kaydeden fonksiyon
             async function saveTableData(btn, original) {
                 try {
-                    console.log('Starting to save table data...');
-                    
                     // Competition Companies verilerini topla ve kaydet
                     await saveCompetitionCompaniesData();
                     
                     // Business Partners verilerini topla ve kaydet
                     await saveBusinessPartnersData();
                     
-                    // Başarılı mesaj göster
+                    // Başarılı mesaj göster ve sayfayı yenile
                     btn.prop('disabled', false).html(original);
-                    showSuccessMessage('Tüm veriler başarıyla kaydedildi!');
-                    console.log('All table data saved successfully');
+                    var currentPageStep = @currentStep;
+                    if (currentPageStep == 2) {
+                        showSuccessMessage('Ticari bilgiler başarıyla kaydedildi! 3. adıma geçiliyor...');
+                    } else {
+                        showSuccessMessage('Ticari bilgiler güncellendi!');
+                    }
+                    setTimeout(function(){ 
+                        window.location.reload();
+                    }, 1500);
                     
                 } catch (error) {
                     btn.prop('disabled', false).html(original);
-                    console.error('Error saving table data:', error);
-                    alert('Tablo verileri kaydedilirken bir hata oluştu: ' + error);
+                    showValidationError('Tablo verileri kaydedilirken bir hata oluştu: ' + error);
                 }
             }
 
@@ -777,6 +995,69 @@
             // Tablo verilerini yükle
             loadCompetitionCompanies();
             loadBusinessPartners();
+            loadProposalRisks();
+            
+            // Akıllı metin alanlarını başlat
+            initSmartTextareas();
+            
+            // Status dropdown - Set initial value
+            var currentStatus = $('#proposalStatusDropdown').data('current-status');
+            var statusValue = getStatusValue(currentStatus);
+            $('#proposalStatusDropdown').val(statusValue);
+            
+            // Helper function to get status value
+            function getStatusValue(statusKey) {
+                var statusMap = {
+                    'Draft': 1,
+                    'Sent': 2,
+                    'Approved': 3,
+                    'Rejected': 4,
+                    'Cancelled': 5
+                };
+                return statusMap[statusKey] || 1;
+            }
+            
+            // Status dropdown değişikliği
+            $('#proposalStatusDropdown').on('change', function() {
+                const $dropdown = $(this);
+                const proposalId = $dropdown.data('proposal-id');
+                const newStatus = $dropdown.val();
+                const originalValue = $dropdown.find('option:selected').val();
+                
+                // Onay mesajı
+                if (confirm('Teklif durumunu değiştirmek istediğinizden emin misiniz?')) {
+                    // Loading göster
+                    $dropdown.prop('disabled', true);
+                    
+                    $.ajax({
+                        url: '/Proposals/UpdateProposalStatus',
+                        type: 'POST',
+                        data: {
+                            proposalId: proposalId,
+                            status: newStatus
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                showSuccessMessage('✅ Teklif durumu başarıyla güncellendi!');
+                                // Sayfa yenilenir
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1500);
+                            } else {
+                                showValidationError(response.message || 'Durum güncellenirken bir hata oluştu');
+                                $dropdown.prop('disabled', false);
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            showValidationError('Durum güncellenirken bir hata oluştu: ' + error);
+                            $dropdown.prop('disabled', false);
+                        }
+                    });
+                } else {
+                    // İptal edildi, eski değere dön
+                    $dropdown.val(originalValue);
+                }
+            });
             
             // Buton event handler'larını bağla - document ready içinde
             $(document).ready(function() {
@@ -807,30 +1088,17 @@
                 // Önceki hata mesajlarını temizle
                 $('.validation-error-alert').remove();
                 
-                var errorAlert = $('<div class="alert alert-danger validation-error-alert alert-dismissible fade show" role="alert">' +
-                    '<i class="fas fa-exclamation-triangle me-2"></i>' + message +
+                var errorAlert = $('<div class="alert alert-danger validation-error-alert alert-dismissible fade show" role="alert" style="position: fixed; top: 80px; right: 20px; z-index: 9999; min-width: 300px; max-width: 500px;">' +
+                    '<i class="fas fa-exclamation-triangle me-2"></i><strong>Hata:</strong><br/>' + message +
                     '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>' +
                     '</div>');
                 
-                $('#step-content-container').prepend(errorAlert);
+                $('body').append(errorAlert);
                 
                 // 5 saniye sonra otomatik kapat
                 setTimeout(function() {
                     errorAlert.alert('close');
                 }, 5000);
-            }
-
-            function goToNextStep() {
-                var currentStep = $('#proposal-steps a.active');
-                var nextStep = currentStep.next('a');
-                if (nextStep.length > 0) {
-                    $('#proposal-steps a').removeClass('active');
-                    nextStep.addClass('active');
-                    loadStepContent(nextStep);
-                    showSuccessMessage('Information saved successfully. Proceeding to the next step.');
-                } else {
-                    showSuccessMessage('All steps completed! You can now download the Word document.');
-                }
             }
 
             function showSuccessMessage(message) {
@@ -1163,20 +1431,257 @@
                 }
             }
 
+            // ===== RİSKLER =====
+            function loadProposalRisks() {
+                $.get('/Proposals/GetProposalRisks', { proposalId: '@proposal.Id' }, function(data) {
+                    var tbody = $('#risksBody');
+                    tbody.empty();
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(function(risk, index) {
+                            addRiskRow(risk, index + 1);
+                        });
+                    } else {
+                        // Initialize default risks if none exist
+                        $.post('/Proposals/InitializeProposalRisks', { proposalId: '@proposal.Id' }, function() {
+                            loadProposalRisks(); // Reload after initialization
+                        });
+                    }
+                }).fail(function() {
+                    console.error('Error loading proposal risks');
+                });
+            }
+
+            function addRiskRow(risk, index) {
+                var descriptionId = 'riskDesc_' + (risk.id || 'new_' + index);
+                var charCountId = 'charCount_' + (risk.id || 'new_' + index);
+                var currentLength = (risk.description || '').length;
+                var maxLength = 500;
+                
+                var row = `
+                    <tr data-risk-id="${risk.id || ''}">
+                        <td class="text-center fw-bold">3.${index}</td>
+                        <td>
+                            <input type="text" class="form-control form-control-sm" 
+                                   name="riskTitle_${risk.id}"
+                                   value="${risk.title || ''}" 
+                                   readonly 
+                                   style="background-color: #f8f9fa; border: 1px solid #dee2e6;">
+                        </td>
+                        <td>
+                            <div class="position-relative">
+                                <textarea class="form-control form-control-sm auto-resize-textarea" 
+                                          id="${descriptionId}"
+                                          name="riskDescription_${risk.id}"
+                                          rows="2"
+                                          maxlength="${maxLength}"
+                                          placeholder="Risk açıklamasını buraya yazın... (Maksimum ${maxLength} karakter)"
+                                          style="resize: vertical; min-height: 50px;">${risk.description || ''}</textarea>
+                                <small class="text-muted position-absolute" 
+                                       style="bottom: 5px; right: 10px; font-size: 0.75rem;"
+                                       id="${charCountId}">
+                                    <span class="char-count">${currentLength}</span>/${maxLength}
+                                </small>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                $('#risksBody').append(row);
+                
+                // Textarea için event handler ekle
+                $('#' + descriptionId).on('input', function() {
+                    // Karakter sayacını güncelle
+                    var currentLen = $(this).val().length;
+                    $('#' + charCountId + ' .char-count').text(currentLen);
+                    
+                    // Renk değişimi (limite yaklaşınca)
+                    if (currentLen > maxLength * 0.9) {
+                        $('#' + charCountId).removeClass('text-muted').addClass('text-danger fw-bold');
+                    } else if (currentLen > maxLength * 0.7) {
+                        $('#' + charCountId).removeClass('text-muted text-danger').addClass('text-warning');
+                    } else {
+                        $('#' + charCountId).removeClass('text-warning text-danger').addClass('text-muted');
+                    }
+                    
+                    // Auto-resize
+                    autoResizeTextarea(this);
+                });
+                
+                // İlk yüklemede de resize yap
+                autoResizeTextarea($('#' + descriptionId)[0]);
+            }
+            
+            // Textarea otomatik boyutlandırma fonksiyonu
+            function autoResizeTextarea(textarea) {
+                if (!textarea) return;
+                
+                textarea.style.height = 'auto';
+                textarea.style.height = Math.max(textarea.scrollHeight, 50) + 'px';
+            }
+            
+            // Akıllı metin alanlarını başlat
+            function initSmartTextareas() {
+                $('.smart-textarea').each(function() {
+                    var $textarea = $(this);
+                    var maxLength = parseInt($textarea.attr('maxlength')) || 1000;
+                    var $charCounter = $textarea.parent().find('.char-counter .char-count');
+                    
+                    // Input event
+                    $textarea.on('input', function() {
+                        var currentLen = $(this).val().length;
+                        $charCounter.text(currentLen);
+                        
+                        // Renk değişimi
+                        var $counterElement = $(this).parent().find('.char-counter');
+                        if (currentLen > maxLength * 0.9) {
+                            $counterElement.removeClass('text-muted text-warning').addClass('text-danger fw-bold');
+                        } else if (currentLen > maxLength * 0.7) {
+                            $counterElement.removeClass('text-muted text-danger fw-bold').addClass('text-warning');
+                        } else {
+                            $counterElement.removeClass('text-warning text-danger fw-bold').addClass('text-muted');
+                        }
+                        
+                        // Auto-resize
+                        autoResizeTextarea(this);
+                    });
+                    
+                    // İlk yüklemede resize
+                    autoResizeTextarea(this);
+                });
+            }
+
+            // Riskler formu submit
+            $('#risksForm').on('submit', function(e) {
+                e.preventDefault();
+                
+                var risks = [];
+                $('#risksBody tr').each(function() {
+                    var row = $(this);
+                    var riskId = row.attr('data-risk-id');
+                    var title = row.find('input[name^="riskTitle_"]').val();
+                    var description = row.find('textarea[name^="riskDescription_"]').val();
+                    
+                    risks.push({
+                        id: riskId || null,
+                        proposalId: '@proposal.Id',
+                        title: title,
+                        description: description,
+                        isApplicable: description && description.trim() !== '' ? true : null
+                    });
+                });
+                
+                var btn = $(this).find('button[type="submit"]');
+                var original = btn.html();
+                btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-2"></span>Kaydediliyor...');
+                
+                $.ajax({
+                    url: '/Proposals/SaveProposalRisks',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(risks),
+                    success: function(response) {
+                        btn.prop('disabled', false).html(original);
+                        if (response.success) {
+                            showSuccessMessage('Risk bilgileri başarıyla kaydedildi!');
+                            
+                            // Update proposal step to 4 if currently on step 3
+                            var currentPageStep = @currentStep;
+                            if (currentPageStep == 3) {
+                                // Call UpdateSummary to advance to next step
+                                $.ajax({
+                                    url: '/Proposals/UpdateSummary/@proposal.Id',
+                                    type: 'POST',
+                                    data: {
+                                        __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val(),
+                                        Id: '@proposal.Id',
+                                        CurrentStep: 3,
+                                        NextStep: 4
+                                    },
+                                    success: function() {
+                                        setTimeout(function() {
+                                            window.location.reload();
+                                        }, 1500);
+                                    }
+                                });
+                            } else {
+                                setTimeout(function() {
+                                    window.location.reload();
+                                }, 1500);
+                            }
+                        } else {
+                            showValidationError(response.message || 'Bir hata oluştu');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        btn.prop('disabled', false).html(original);
+                        showValidationError('Kaydetme sırasında bir hata oluştu: ' + error);
+                    }
+                });
+            });
+
         });
     </script>
 }
 
 <style>
-    .step-badge { 
-        background-color: #0d6efd; 
-        font-size: 0.9rem;
-        font-weight: 600;
+    /* Progress Indicator Styles */
+    .progress-container {
+        padding: 20px 0;
     }
     
+    .progress-line {
+        position: absolute;
+        top: 50%;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: #e9ecef;
+        transform: translateY(-50%);
+        z-index: 0;
+    }
+    
+    .step-item {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        flex: 1;
+    }
+    
+    .step-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-weight: bold;
+        font-size: 1.2rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .step-item.completed .step-circle {
+        transform: scale(1.1);
+    }
+    
+    .step-label {
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-top: 8px;
+    }
+    
+    .step-item.completed .step-label {
+        color: #198754;
+    }
+    
+    /* Accordion Styles */
     .accordion-button.disabled { 
         pointer-events: none; 
-        opacity: .6; 
+        opacity: .5;
+        background-color: #f8f9fa !important;
+        cursor: not-allowed;
     }
     
     .accordion-button:not(.collapsed) {
@@ -1188,6 +1693,7 @@
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
     
+    /* Card Styles */
     .card {
         border: none;
         box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -1198,6 +1704,7 @@
         box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
     }
     
+    /* Form Styles */
     .form-control, .form-select {
         border: 1px solid #ced4da;
         border-radius: 0.375rem;
@@ -1209,10 +1716,12 @@
         box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
     }
     
+    /* Table Styles */
     .table-hover tbody tr:hover {
         background-color: rgba(0, 0, 0, 0.075);
     }
     
+    /* Button Styles */
     .btn {
         border-radius: 0.375rem;
         font-weight: 500;
@@ -1221,11 +1730,109 @@
     
     .btn:hover {
         transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
     }
     
+    /* Badge Styles */
     .badge {
         font-size: 0.75rem;
         font-weight: 600;
     }
+    
+    /* Alert Animations */
+    .alert {
+        animation: slideInRight 0.3s ease-out;
+    }
+    
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    /* Auto-resize Textarea Styles */
+    .auto-resize-textarea,
+    .smart-textarea {
+        transition: height 0.2s ease;
+        overflow-y: hidden;
+        line-height: 1.5;
+        padding-bottom: 30px !important; /* Karakter sayacı için yer */
+        resize: vertical;
+        min-height: 60px;
+    }
+    
+    .auto-resize-textarea:focus,
+    .smart-textarea:focus {
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+        border-color: #86b7fe;
+    }
+    
+    /* Karakter sayacı hover efekti */
+    .auto-resize-textarea:focus + small,
+    .smart-textarea:focus + .char-counter {
+        font-weight: 600;
+    }
+    
+    /* Karakter sayacı genel stil */
+    .char-counter {
+        background-color: rgba(255, 255, 255, 0.9);
+        padding: 2px 6px;
+        border-radius: 4px;
+        transition: all 0.3s ease;
+    }
+    
+    /* Risk tablosu textarea stilleri */
+    #risksTable textarea {
+        font-size: 0.9rem;
+    }
+    
+    #risksTable td {
+        vertical-align: top;
+        padding: 0.75rem;
+    }
+    
+    /* Status Dropdown in Edit Page */
+    .status-dropdown-edit {
+        font-weight: 500;
+        border: 1px solid #d1d5db;
+        background: white;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+    
+    .status-dropdown-edit:hover {
+        border-color: #9ca3af;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+    
+    .status-dropdown-edit:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        outline: none;
+    }
+    
+    .status-dropdown-edit:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        background-color: #f9fafb;
+    }
 </style>
+
+
+
+
+
+
+
+
+
+
+
+
+
 

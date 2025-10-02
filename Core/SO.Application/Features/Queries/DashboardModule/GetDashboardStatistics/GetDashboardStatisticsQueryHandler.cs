@@ -46,15 +46,17 @@ namespace SO.Application.Features.Queries.DashboardModule.GetDashboardStatistics
 
                 var dashboardStats = new DashboardStatisticsDto
                 {
-                    TotalProposalsCount = userProposals.Count,
-                    ActiveClientsCount = userAccounts.Count,
-                    CompletedProjectsCount = userProposals.Count(p => p.Status == "Completed"),
                     DraftProposalsCount = userProposals.Count(p => p.Status == "Draft"),
+                    SentProposalsCount = userProposals.Count(p => p.Status == "Sent"),
+                    ApprovedProposalsCount = userProposals.Count(p => p.Status == "Approved"),
+                    RejectedProposalsCount = userProposals.Count(p => p.Status == "Rejected"),
+                    CancelledProposalsCount = userProposals.Count(p => p.Status == "Cancelled"),
                     TotalRevenue = userProposals.Sum(p => p.TotalAmount),
                     BusinessActivities = await GenerateBusinessActivitiesAsync(userProposals, userAccounts)
                 };
 
-                _logger.LogInformation($"Generated dashboard stats: {dashboardStats.TotalProposalsCount} proposals, {dashboardStats.ActiveClientsCount} clients, {dashboardStats.BusinessActivities.Count} activities");
+                var totalProposals = dashboardStats.DraftProposalsCount + dashboardStats.SentProposalsCount + dashboardStats.ApprovedProposalsCount + dashboardStats.RejectedProposalsCount + dashboardStats.CancelledProposalsCount;
+                _logger.LogInformation($"Generated dashboard stats: {totalProposals} proposals (Draft:{dashboardStats.DraftProposalsCount}, Sent:{dashboardStats.SentProposalsCount}, Approved:{dashboardStats.ApprovedProposalsCount}, Rejected:{dashboardStats.RejectedProposalsCount}, Cancelled:{dashboardStats.CancelledProposalsCount}), {dashboardStats.BusinessActivities.Count} activities");
 
                 return new GetDashboardStatisticsQueryResponse
                 {
@@ -144,30 +146,30 @@ namespace SO.Application.Features.Queries.DashboardModule.GetDashboardStatistics
                         _logger.LogInformation($"Added activity: {activity.Title} for {activity.RelatedEntityName}");
                     }
 
-                    // Tamamlanan proposal'lar (en son 2 tane)
-                    var completedProposals = proposals
-                        .Where(p => p.Status == "Completed")
+                    // Onaylanan proposal'lar (en son 2 tane)
+                    var approvedProposals = proposals
+                        .Where(p => p.Status == "Approved")
                         .OrderByDescending(p => p.UpdatedDate ?? p.CreatedDate)
                         .Take(2);
 
-                    _logger.LogInformation($"Found {completedProposals.Count()} completed proposals");
+                    _logger.LogInformation($"Found {approvedProposals.Count()} approved proposals");
 
-                    foreach (var proposal in completedProposals)
+                    foreach (var proposal in approvedProposals)
                     {
-                        var completionDate = proposal.UpdatedDate ?? proposal.CreatedDate;
-                        var timeAgo = GetTimeAgo(completionDate, now);
+                        var approvalDate = proposal.UpdatedDate ?? proposal.CreatedDate;
+                        var timeAgo = GetTimeAgo(approvalDate, now);
                         var activity = new BusinessActivityItem
                         {
                             Id = proposal.Id.ToString(),
-                            Title = $"Project Completed: {proposal.ProposalName}",
-                            Description = $"Project for {proposal.CompanyName} has been successfully completed",
+                            Title = $"Proposal Approved: {proposal.ProposalName}",
+                            Description = $"Proposal for {proposal.CompanyName} has been approved",
                             IconClass = "fas fa-check-circle",
                             IconColor = "bg-success",
-                            ActivityDate = completionDate,
+                            ActivityDate = approvalDate,
                             TimeAgo = timeAgo,
                             ActivityType = "Proposal",
                             RelatedEntityName = proposal.ProposalName,
-                            Status = "Completed",
+                            Status = "Approved",
                             UserName = proposal.PreparedBy ?? "System"
                         };
                         

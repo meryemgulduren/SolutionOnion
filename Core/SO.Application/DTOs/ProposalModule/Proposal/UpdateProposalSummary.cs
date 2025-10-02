@@ -9,23 +9,28 @@ using System.Collections.Generic;
 
 namespace SO.Application.DTOs.ProposalModule.Proposal
 {
-    // Bu DTO, sadece Project Summary adımından gelen verileri taşımak için kullanılır.
-    public class UpdateProposalSummary
-    {
-        public string ProposalId { get; set; }
-        public string? ProjectDescription { get; set; }
-        public int? OfferDurationDays { get; set; }
-        public int? DeliveryDurationDays { get; set; }
-        public string? OfferOwner { get; set; }
-        public decimal? QuantityValue { get; set; }
-        public string? QuantityUnit { get; set; }
-        public string? GeneralNote { get; set; }
-        public string? AddressId { get; set; }
-        // Ticari
-        public decimal? TargetPrice { get; set; }
-        public string? PaymentMethod { get; set; }
-        public string? PaymentTerm { get; set; }
-        public string? CommercialNote { get; set; }
-        public DateTime? ValidUntilDate { get; set; }
-    }
+	// Bu DTO, sadece Project Summary adımından gelen verileri taşımak için kullanılır.
+	public class UpdateProposalSummary
+	{
+		public string ProposalId { get; set; }
+		
+		// Wizard step tracking
+		public int CurrentStep { get; set; }
+		public int NextStep { get; set; }
+		
+		public string? ProjectDescription { get; set; }
+		public int? OfferDurationDays { get; set; }
+		public int? DeliveryDurationDays { get; set; }
+		public string? OfferOwner { get; set; }
+		public decimal? QuantityValue { get; set; }
+		public string? QuantityUnit { get; set; }
+		public string? GeneralNote { get; set; }
+		public string? AddressId { get; set; }
+		// Ticari
+		public decimal? TargetPrice { get; set; }
+		public string? PaymentMethod { get; set; }
+		public string? PaymentTerm { get; set; }
+		public string? CommercialNote { get; set; }
+		public DateTime? ValidUntilDate { get; set; }
+	}
 }

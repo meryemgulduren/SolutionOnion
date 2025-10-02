@@ -38,6 +38,7 @@ namespace SO.Persistence
             services.AddScoped<IProposalService, ProposalService>();
             services.AddScoped<IBusinessPartnerService, BusinessPartnerService>();
             services.AddScoped<ICompetitionCompanyService, CompetitionCompanyService>();
+            services.AddScoped<IProposalRiskService, ProposalRiskService>();
 
             // --- Database Seeder ---
             services.AddScoped<SO.Persistence.Seed.DatabaseSeeder>();

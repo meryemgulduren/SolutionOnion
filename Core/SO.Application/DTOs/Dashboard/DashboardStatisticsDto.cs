@@ -2,10 +2,13 @@ namespace SO.Application.DTOs.Dashboard
 {
     public class DashboardStatisticsDto
     {
-        public int TotalProposalsCount { get; set; }
-        public int ActiveClientsCount { get; set; }
-        public int CompletedProjectsCount { get; set; }
-        public int DraftProposalsCount { get; set; }
+        // Proposal Status Based Counts
+        public int DraftProposalsCount { get; set; }        // Taslak
+        public int SentProposalsCount { get; set; }         // Gönderildi
+        public int ApprovedProposalsCount { get; set; }     // Onaylandı
+        public int RejectedProposalsCount { get; set; }     // Reddedildi
+        public int CancelledProposalsCount { get; set; }    // İptal Edildi
+        
         public decimal TotalRevenue { get; set; }
         public List<BusinessActivityItem> BusinessActivities { get; set; } = new List<BusinessActivityItem>();
     }

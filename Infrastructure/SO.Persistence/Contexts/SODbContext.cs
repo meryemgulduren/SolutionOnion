@@ -27,6 +27,7 @@ namespace SO.Persistence.Contexts
         public DbSet<Proposal> Proposals { get; set; }
         public DbSet<CompetitionCompany> CompetitionCompanies { get; set; }
         public DbSet<BusinessPartner> BusinessPartners { get; set; }
+        public DbSet<ProposalRisk> ProposalRisks { get; set; }
         
         // Permission system
         public DbSet<AppPermission> Permissions { get; set; }
@@ -75,6 +76,13 @@ namespace SO.Persistence.Contexts
                 .HasMany(p => p.BusinessPartners)
                 .WithOne(bp => bp.Proposal)
                 .HasForeignKey(bp => bp.ProposalId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Proposal-ProposalRisk
+            builder.Entity<Proposal>()
+                .HasMany(p => p.ProposalRisks)
+                .WithOne(pr => pr.Proposal)
+                .HasForeignKey(pr => pr.ProposalId)
                 .OnDelete(DeleteBehavior.Cascade);
 
             // Permission-PermissionRole ilişkisi
